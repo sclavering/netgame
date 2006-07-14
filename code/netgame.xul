@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="netgame.css" type="text/css"?>
+
+<!DOCTYPE window> <!-- SYSTEM "chrome://netgame/locale/netgame.dtd">
+-->
+<window
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+
+    windowtype="netgame"
+    id="netgame-window"
+    title="Net"
+    persist="screenX screenY"
+    height="200"
+    width="500"
+    >
+
+<script type="application/x-javascript" src="netgame.js"/>
+
+<toolbox id="main-toolbox">
+  <toolbarbutton label="New" id="btn-new" oncommand="newGrid(9, 9)"/>
+</toolbox>
+
+<html:canvas id="netgame-view" width="100" height="100"/>
+
+</window>
