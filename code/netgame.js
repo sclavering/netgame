@@ -3,7 +3,6 @@ const sqrSize = 20;
 window.onload = function() {
   view.init();
   newGrid(9, 9);
-  sizeToContent();
 }
 
 const kTileSize = 20;

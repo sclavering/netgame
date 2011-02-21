@@ -1,2 +1,0 @@
-zip -ur0 chrome/netgame.jar content -x '*CVS*'
-zip -ur9 netgame.xpi chrome install.rdf -x '*CVS*'
