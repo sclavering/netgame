@@ -4,26 +4,34 @@ window.onload = function() {
 }
 
 const kTileSize = 50;
+const kTileHalf = 25;
 
 const view = {
   init: function() {
+    this._svg = document.getElementById('gameview');
+    this._gridview = document.getElementById('sqrgrid');
     const ids = {
-      _svg: 'gameview',
-      _gridview: 'sqrgrid',
-      _template_core: 'sqr-core',
-      _template_none: 'sqr-none',
-      _template_t: 'sqr-t',
-      _template_tr: 'sqr-tr',
-      _template_tb: 'sqr-tb',
-      _template_trb: 'sqr-trb',
-      _template_trbl: 'sqr-trbl',
+      wall_v: 'wall-v',
+      wall_h: 'wall-h',
+      core: 'sqr-core',
+      none: 'sqr-none',
+      t: 'sqr-t',
+      tr: 'sqr-tr',
+      tb: 'sqr-tb',
+      trb: 'sqr-trb',
+      trbl: 'sqr-trbl',
     };
-    for(var [k, v] in Iterator(ids)) this[k] = document.getElementById(v);
-    delete this.init;
+    const sts = this._svg_templates = {};
+    for(var [k, v] in Iterator(ids)) {
+      sts[k] = document.getElementById(v);
+      sts[k].removeAttribute('id'); // because we're going to clone it a lot
+    }
+    this.init = null; // make repeated init() fail
   },
 
   _grid: null,
   _svg: null,
+  _svg_templates: null,
   _gridview: null,
   _views: null,
 
@@ -32,8 +40,8 @@ const view = {
     const gv = this._gridview;
     while(gv.hasChildNodes()) gv.removeChild(gv.lastChild);
     const vb = this._svg.viewBox.baseVal;
-    vb.width = grid.width * 50;
-    vb.height = grid.height * 50;
+    vb.width = grid.width * kTileSize;
+    vb.height = grid.height * kTileSize;
     const tvs = this._tileviews = new Array(grid.width);
     for(var x = 0; x != grid.width; ++x) {
       tvs[x] = new Array(grid.height);
@@ -41,21 +49,35 @@ const view = {
         tvs[x][y] = this._make_tile(x, y);
       }
     }
+    // draw the walls (after the tiles, so they come above in z-order)
+    for(var x = 0; x != grid.width; ++x) {
+      for(var y = 0; y != grid.height; ++y) {
+        var cell = grid[x][y], adj = cell.adj;
+        if(!x && !adj[3]) this._draw_wall('wall_v', x, y);
+        if(!adj[1]) this._draw_wall('wall_v', x + 1, y);
+        if(!y && !adj[0]) this._draw_wall('wall_h', x, y);
+        if(!adj[2]) this._draw_wall('wall_h', x, y + 1);
+      }
+    }
     gv.onclick = this._onclick;
+  },
+
+  _add_transformed_clone: function(template_id, transform) {
+    if(!this._svg_templates[template_id]) alert(template_id);
+    const el = this._svg_templates[template_id].cloneNode(true);
+    el.setAttribute('transform', transform);
+    this._gridview.appendChild(el);
+    return el;
   },
 
   _make_tile: function(x, y) {
     const cell = this._grid[x][y];
     const [shape, base_angle] = this._calculate_shape(cell);
-    const view = this['_template_' + shape].cloneNode(true);
+    const view = this._add_transformed_clone(shape, 'translate(' + (x * kTileSize + kTileHalf) + ',' + (y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
     view.__x = x;
     view.__y = y;
-    view.removeAttribute('id');
-    const view_x = x * 50 + 25, view_y = y * 50 + 25;
-    view.setAttribute('transform', 'translate(' + view_x + ',' + view_y + ') rotate(' + base_angle + ')');
     if(cell.isSource) {
-      const core = this._template_core.cloneNode(true);
-      core.removeAttribute('id');
+      const core = this._svg_templates.core.cloneNode(true);
       view.firstChild.appendChild(core);
     }
     this._gridview.appendChild(view);
@@ -85,6 +107,10 @@ const view = {
       })[links_sum];
   },
 
+  _draw_wall: function(wall, x, y) {
+    this._add_transformed_clone(wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
+  },
+
   _onclick: function(ev) {
     const g = ev.target.parentNode.parentNode, x = g.__x, y = g.__y;
   },
@@ -98,7 +124,7 @@ function newGrid(width, height) {
 
 
 function createGrid(width, height) {
-  const grid = createEmptyGrid(width, height, false, false, 12);
+  const grid = createEmptyGrid(width, height, false, false, 10);
   fillGrid(grid);
   return grid;
 }

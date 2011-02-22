@@ -28,6 +28,12 @@ body {
   fill: green;
 }
 
+.wall {
+  stroke: red;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+
 .line {
   pointer-events: none;
   stroke: black;
