@@ -11,10 +11,10 @@ const view = {
     this._svg = document.getElementById('gameview');
     this._gridview = document.getElementById('sqrgrid');
     const ids = {
+      tile: 'sqr-tile',
       wall_v: 'wall-v',
       wall_h: 'wall-h',
       core: 'sqr-core',
-      none: 'sqr-none',
       t: 'sqr-t',
       tr: 'sqr-tr',
       tb: 'sqr-tb',
@@ -42,6 +42,16 @@ const view = {
     const vb = this._svg.viewBox.baseVal;
     vb.width = grid.width * kTileSize;
     vb.height = grid.height * kTileSize;
+    // Draw the tile backgrounds first, so they're lowest in z-order
+    for(var x = 0; x != grid.width; ++x) {
+      for(var y = 0; y != grid.height; ++y) {
+        var tv = this._add_transformed_clone('tile', 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
+        tv.__isTile = true;
+        tv.__x = x;
+        tv.__y = y;
+      }
+    }
+    // Draw the links/nodes in the tiles
     const tvs = this._tileviews = new Array(grid.width);
     for(var x = 0; x != grid.width; ++x) {
       tvs[x] = new Array(grid.height);
@@ -75,9 +85,6 @@ const view = {
     const cell = this._grid[x][y];
     const [shape, base_angle] = this._calculate_shape(cell);
     const view = this._add_transformed_clone(shape, 'translate(' + (x * kTileSize + kTileHalf) + ',' + (y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
-    view.__x = x;
-    view.__y = y;
-    view.__isTile = true;
     if(cell.isSource) {
       const core = this._svg_templates.core.cloneNode(true);
       view.firstChild.appendChild(core);
@@ -126,7 +133,7 @@ const view = {
   },
 
   _onclick: function(ev) {
-    const g = ev.target.parentNode.parentNode;
+    const g = ev.target;
     if(!g.__isTile) return;
     const x = g.__x, y = g.__y;
     const cell = this._grid[x][y];
