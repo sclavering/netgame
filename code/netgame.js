@@ -135,7 +135,7 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
   grid.width = width;
   grid.height = height;
 
-  const xmax = width -1 ;
+  const xmax = width - 1;
   const ymax = height - 1;
 
   for(var x = 0; x != width; ++x) {
@@ -185,9 +185,9 @@ function fillGrid(grid) {
   source.isSource = true;
   source.isLinked = true;
 
-  var fringe0 = source.adj;
-  var fringe = [];
-  var uniq = new Array(width * height); // ensures uniqueness of elements of |fringe|
+  const fringe0 = source.adj;
+  const fringe = [];
+  const uniq = new Array(width * height); // ensures uniqueness of elements of |fringe|
   for(var i = 0; i != 4; ++i) {
     var fr = fringe0[i];
     if(!fringe0[i]) continue;
