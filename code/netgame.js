@@ -155,7 +155,7 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
 function fillGrid(grid) {
   const width = grid.length, height = grid[0].length;
 
-  var source = grid[Math.floor(width/2)][Math.floor(height/2)];
+  var source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
   source.isSource = true;
   source.isLinked = true;
 
