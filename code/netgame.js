@@ -10,6 +10,7 @@ const view = {
     const ids = {
       _svg: 'gameview',
       _gridview: 'sqrgrid',
+      _template_core: 'sqr-core',
       _template_none: 'sqr-none',
       _template_t: 'sqr-t',
       _template_tr: 'sqr-tr',
@@ -40,15 +41,23 @@ const view = {
         tvs[x][y] = this._make_tile(x, y);
       }
     }
+    gv.onclick = this._onclick;
   },
 
   _make_tile: function(x, y) {
     const cell = this._grid[x][y];
     const [shape, base_angle] = this._calculate_shape(cell);
     const view = this['_template_' + shape].cloneNode(true);
+    view.__x = x;
+    view.__y = y;
     view.removeAttribute('id');
     const view_x = x * 50 + 25, view_y = y * 50 + 25;
     view.setAttribute('transform', 'translate(' + view_x + ',' + view_y + ') rotate(' + base_angle + ')');
+    if(cell.isSource) {
+      const core = this._template_core.cloneNode(true);
+      core.removeAttribute('id');
+      view.firstChild.appendChild(core);
+    }
     this._gridview.appendChild(view);
     return view;
   },
@@ -75,13 +84,11 @@ const view = {
         15: ['trbl', 0],
       })[links_sum];
   },
+
+  _onclick: function(ev) {
+    const g = ev.target.parentNode.parentNode, x = g.__x, y = g.__y;
+  },
 }
-
-function onClick(e) {
-  e.target.clicked(e);
-}
-
-
 
 
 function newGrid(width, height) {
@@ -91,7 +98,7 @@ function newGrid(width, height) {
 
 
 function createGrid(width, height) {
-  const grid = createEmptyGrid(width, height, false, true, 12);
+  const grid = createEmptyGrid(width, height, false, false, 12);
   fillGrid(grid);
   return grid;
 }
@@ -151,8 +158,8 @@ function fillGrid(grid) {
   const width = grid.length, height = grid[0].length;
 
   var source = grid[Math.floor(width/2)][Math.floor(height/2)];
+  source.isSource = true;
   source.isLinked = true;
-  source.powered = true;
 
   var fringe0 = source.adj;
   var fringe = [];
@@ -191,8 +198,6 @@ function Cell(x, y, id) {
   this.id = id; // x*width + height, basically
   this.x = x;
   this.y = y;
-  // is this cell linked to the power source yet?
-  this.isLinked = false;
 
   // up, right, down, left
   this.adj = [null, null, null, null];
@@ -200,7 +205,8 @@ function Cell(x, y, id) {
   this.links = [0, 0, 0, 0];
 }
 Cell.prototype = {
-  powered: false,
+  isSource: false,
+  isLinked: false, // is this cell linked to the power source yet?
 
   get up() { return this.adj[0]; },
   set up(val) { return this.adj[0] = val; },

@@ -23,19 +23,20 @@ body {
 
 
 .tile {
-  fill: green;
-  stroke-width: 1px;
   stroke: white;
+  stroke-width: 1px;
+  fill: green;
 }
 
 .line {
-  stroke-width: 5px;
-  stroke: black;
-  fill: none;
   pointer-events: none;
+  stroke: black;
+  stroke-width: 5px;
   stroke-linecap: round;
+  fill: none;
 }
 
 .node {
+  pointer-events: none;
   fill: pink;
 }
