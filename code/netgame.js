@@ -57,6 +57,7 @@ const view = {
       tvs[x] = new Array(grid.height);
       for(var y = 0; y != grid.height; ++y) {
         tvs[x][y] = this._make_tile(x, y);
+        this.update_tile_view(x, y);
       }
     }
     // draw the walls (after the tiles, so they come above in z-order)
@@ -146,6 +147,9 @@ const view = {
 
 function newGrid(width, height) {
   const grid = createGrid(width, height);
+  for(var x = 0; x != width; ++x)
+    for(var y = 0; y != height; ++y)
+      grid[x][y]._rotation = Math.floor(Math.random() * 4) % 4;
   view.show(grid);
 }
 
@@ -305,7 +309,7 @@ Cell.prototype = {
   },
 
   rotate_clockwise: function() {
-    ++this._rotation;
+    this._rotation = [1, 2, 3, 0][this._rotation];
   }
 };
 
