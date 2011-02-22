@@ -288,7 +288,9 @@ Cell.prototype = {
   },
 
   has_current_link_to: function(dir) {
-    return !!this.links[(dir + this._rotation) % 4];
+    dir -= this._rotation;
+    if(dir < 0) dir += 4;
+    return !!this.links[dir];
   },
 
   current_angle: function() {
