@@ -25,7 +25,7 @@ body {
 .tile {
   stroke: white;
   stroke-width: 1px;
-  fill: green;
+  fill: grey;
 }
 
 .wall {
@@ -40,6 +40,10 @@ body {
   stroke-width: 5px;
   stroke-linecap: round;
   fill: none;
+}
+
+.powered .line {
+  stroke: green;
 }
 
 .node {

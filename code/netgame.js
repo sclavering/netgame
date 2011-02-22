@@ -59,11 +59,12 @@ const view = {
         if(!adj[2]) this._draw_wall('wall_h', x, y + 1);
       }
     }
-    gv.onclick = this._onclick;
+    this.update_poweredness();
+    const self = this;
+    gv.onclick = function(ev) { self._onclick(ev) };
   },
 
   _add_transformed_clone: function(template_id, transform) {
-    if(!this._svg_templates[template_id]) alert(template_id);
     const el = this._svg_templates[template_id].cloneNode(true);
     el.setAttribute('transform', transform);
     this._gridview.appendChild(el);
@@ -76,6 +77,7 @@ const view = {
     const view = this._add_transformed_clone(shape, 'translate(' + (x * kTileSize + kTileHalf) + ',' + (y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
     view.__x = x;
     view.__y = y;
+    view.__isTile = true;
     if(cell.isSource) {
       const core = this._svg_templates.core.cloneNode(true);
       view.firstChild.appendChild(core);
@@ -107,12 +109,30 @@ const view = {
       })[links_sum];
   },
 
+  update_tile_view: function(x, y) {
+    this._tileviews[x][y].firstChild.setAttribute('transform', 'rotate(' + this._grid[x][y].current_angle() + ')');
+  },
+
+  update_poweredness: function() {
+    const g = this._grid, w = g.width, h = g.height, tvs = this._tileviews;
+    const powered_id_set = which_cells_are_powered(g);
+    for(var x = 0; x != w; ++x)
+      for(var y = 0; y != h; ++y)
+        tvs[x][y].className.baseVal = g[x][y].id in powered_id_set ? 'powered' : '';
+  },
+
   _draw_wall: function(wall, x, y) {
     this._add_transformed_clone(wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
   },
 
   _onclick: function(ev) {
-    const g = ev.target.parentNode.parentNode, x = g.__x, y = g.__y;
+    const g = ev.target.parentNode.parentNode;
+    if(!g.__isTile) return;
+    const x = g.__x, y = g.__y;
+    const cell = this._grid[x][y];
+    cell.rotate_clockwise();
+    this.update_tile_view(x, y);
+    this.update_poweredness();
   },
 }
 
@@ -128,6 +148,7 @@ function createGrid(width, height) {
   fillGrid(grid);
   return grid;
 }
+
 
 // xWrap, yWrap are bools, all others are integers
 function createEmptyGrid(width, height, xWrap, yWrap, walls) {
@@ -169,7 +190,7 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
     cell = grid[x][y];
     var adjcell = grid[x][y].adj[adj];
     if(!adjcell) continue;
-    adjcell.adj[(adj + 2) % 4] = null;
+    adjcell.adj[invert_direction(adj)] = null;
     cell.adj[adj] = null;
     ++i;
   }
@@ -181,9 +202,10 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
 function fillGrid(grid) {
   const width = grid.length, height = grid[0].length;
 
-  var source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
+  const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
   source.isSource = true;
   source.isLinked = true;
+  grid.sourceCell = source;
 
   const fringe0 = source.adj;
   const fringe = [];
@@ -216,21 +238,23 @@ function fillGrid(grid) {
 }
 
 
-
-
 function Cell(x, y, id) {
-  this.id = id; // x * width + height, basically
+  this.id = id; // numeric nonce
   this.x = x;
   this.y = y;
 
   // up, right, down, left
   this.adj = [null, null, null, null];
-  // 1 or 0, as bools, indicating if this block is linked up, right, down, left
+  // 1 or 0, as bools, indicating if this block is linked up, right, down, left, when in its proper orientation.  (i.e. current rotation is not reflected here)
   this.links = [0, 0, 0, 0];
 }
 Cell.prototype = {
   isSource: false,
-  isLinked: false, // is this cell linked to the power source yet?
+
+  // used only during grid construction.  has the cell been linked to the source yet?
+  isLinked: false,
+
+  _rotation: 0, // [0 .. 4)
 
   get up() { return this.adj[0]; },
   set up(val) { return this.adj[0] = val; },
@@ -258,21 +282,45 @@ Cell.prototype = {
     this.links[ran] = 1;
     this.isLinked = true;
 
-    var i2 = (ran + 2) % 4;
+    var i2 = invert_direction(ran);
     adj = adjs[ran];
     adj.links[i2] = 1;
   },
 
-  // left == anticlockwise, if that's not obvious
-  rotateLeft: function() {
-    const links = this.links, tmp = links[0];
-    for(var i = 0; i != 3; ++i) links[i] = links[i + 1];
-    links[3] = tmp;
+  has_current_link_to: function(dir) {
+    return !!this.links[(dir + this._rotation) % 4];
   },
 
-  rotateRight: function() {
-    const links = this.links, tmp = links[3];
-    for(var i = 2; i >= 0; --i) links[i + 1] = links[i];
-    links[0] = tmp;
+  current_angle: function() {
+    return this._rotation * 90;
+  },
+
+  rotate_clockwise: function() {
+    ++this._rotation;
   }
+};
+
+
+// Rotating a cell can power or depower abitrarily many others, so it doesn't make sense to store powered-ness as a property of the cell.  Instead, we build sets of powered node as-needed.
+function which_cells_are_powered(grid) {
+  const powered = {};
+  const queue = [grid.sourceCell];
+  for(var i = 0; i < queue.length; ++i) {
+    var cell = queue[i];
+    powered[cell.id] = true;
+    for(var dir = 0; dir !== 4; ++dir) {
+      var adj = cell.adj[dir];
+      if(!adj) continue;
+      if(!cell.has_current_link_to(dir)) continue;
+      if(!adj.has_current_link_to(invert_direction(dir))) continue;
+      if(powered[adj.id]) continue;
+      queue.push(adj);
+    }
+  }
+  return powered;
+}
+
+
+function invert_direction(dir) {
+  return [2, 3, 0, 1][dir];
 }
