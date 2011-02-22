@@ -149,7 +149,7 @@ function newGrid(width, height) {
   const grid = createGrid(width, height);
   for(var x = 0; x != width; ++x)
     for(var y = 0; y != height; ++y)
-      grid[x][y]._rotation = Math.floor(Math.random() * 4) % 4;
+      grid[x][y]._rotation = random_int(4);
   view.show(grid);
 }
 
@@ -191,12 +191,9 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
 
   // Add some "walls" (extra barriers between cells which should be adjacent)
   for(var i = 0; i != walls; ) {
-    do { x = Math.random(); } while(x == 1.0);
-    do { y = Math.random(); } while(y == 1.0);
-    do { var adj = Math.random(); } while(adj == 1.0);
-    x = Math.floor(x * width);
-    y = Math.floor(y * height);
-    adj = Math.floor(adj * 4);
+    x = random_int(width);
+    y = random_int(height);
+    adj = random_int(4);
 
     cell = grid[x][y];
     var adjcell = grid[x][y].adj[adj];
@@ -230,8 +227,7 @@ function fillGrid(grid) {
 
   for(var num = fringe.length; num; num = fringe.length) {
     // pick a random cell from the fringe
-    do { var ran = Math.random(); } while(ran == 1.0);
-    var cell = fringe.splice(Math.floor(ran * num), 1)[0];
+    var cell = fringe.splice(random_int(num), 1)[0];
 
     // link it into the network, and add its unlinked adjs to the fringe
     cell.linkToRandomAdj();
@@ -277,8 +273,7 @@ Cell.prototype = {
       if(adj && adj.isLinked) linked.push(i);
     }
 
-    do { var ran = Math.random(); } while(ran == 1.0);
-    ran = Math.floor(ran * linked.length);
+    ran = random_int(linked.length);
     ran = linked[ran]; // so it's a cell's index
 
     this.links[ran] = 1;
@@ -327,4 +322,11 @@ function which_cells_are_powered(grid) {
 
 function invert_direction(dir) {
   return [2, 3, 0, 1][dir];
+}
+
+
+function random_int(max) {
+  var r;
+  do { r = Math.random(); } while(r == 1.0);
+  return Math.floor(r * max);
 }
