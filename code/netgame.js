@@ -114,19 +114,19 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
 
   for(var x = 0; x != width; ++x) {
     grid[x] = new Array(height);
-    for(var y = 0; y != height; ++y) grid[x][y] = new Cell(x, y, x*width+y);
+    for(var y = 0; y != height; ++y) grid[x][y] = new Cell(x, y, x * width + y);
   }
 
   for(x = 0; x != width; ++x) {
     for(y = 0; y != width; ++y) {
       var cell = grid[x][y];
-      if(x != 0) cell.left = grid[x-1][y];
+      if(x != 0) cell.left = grid[x - 1][y];
       else if(xWrap) cell.left = grid[xmax][y];
-      if(x != xmax) cell.right = grid[x+1][y];
+      if(x != xmax) cell.right = grid[x + 1][y];
       else if(xWrap) cell.right = grid[0][y];
-      if(y != 0) cell.up = grid[x][y-1];
+      if(y != 0) cell.up = grid[x][y - 1];
       else if(yWrap) cell.up = grid[x][ymax];
-      if(y != ymax) cell.down = grid[x][y+1];
+      if(y != ymax) cell.down = grid[x][y + 1];
       else if(yWrap) cell.down = grid[x][0];
     }
   }
@@ -163,7 +163,7 @@ function fillGrid(grid) {
 
   var fringe0 = source.adj;
   var fringe = [];
-  var uniq = new Array(width*height); // ensures uniqueness of elements of |fringe|
+  var uniq = new Array(width * height); // ensures uniqueness of elements of |fringe|
   for(var i = 0; i != 4; ++i) {
     var fr = fringe0[i];
     if(!fringe0[i]) continue;
@@ -195,7 +195,7 @@ function fillGrid(grid) {
 
 
 function Cell(x, y, id) {
-  this.id = id; // x*width + height, basically
+  this.id = id; // x * width + height, basically
   this.x = x;
   this.y = y;
 
@@ -242,13 +242,13 @@ Cell.prototype = {
   // left == anticlockwise, if that's not obvious
   rotateLeft: function() {
     const links = this.links, tmp = links[0];
-    for(var i = 0; i != 3; ++i) links[i] = links[i+1];
+    for(var i = 0; i != 3; ++i) links[i] = links[i + 1];
     links[3] = tmp;
   },
 
   rotateRight: function() {
     const links = this.links, tmp = links[3];
-    for(var i = 2; i >= 0; --i) links[i+1] = links[i];
+    for(var i = 2; i >= 0; --i) links[i + 1] = links[i];
     links[0] = tmp;
   }
 }
