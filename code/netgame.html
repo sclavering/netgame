@@ -1,13 +1,50 @@
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<title>Net</title>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="netgame.css"/>
+  <title>Mines</title>
+  <script src="netgame.js"></script>
+</head>
 
-<script src="netgame.js"></script>
+<body>
+  <div id="status-panel">
+    <button id="btn-new" onclick="newGrid(9, 9)">New</button>
+  </div>
 
-<button id="btn-new" onclick="newGrid(9, 9)">New</button>
-
-<canvas id="netgame-view" width="100" height="100"></canvas>
+  <div id="wrapper">
+    <svg id="gameview" xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <g id="sqr-none"><g>
+          <path class="tile" d="M -25,-25 L 25,-25 25,25 -25,25 z"/>
+        </g></g>
+        <g id="sqr-t"><g>
+          <path class="tile" d="M -25,-25 L 25,-25 25,25 -25,25 z"/>
+          <path class="line" d="M 0,-25 L 0,0"/>
+          <circle class="node" r="15"/>
+        </g></g>
+        <g id="sqr-tr"><g>
+          <path class="tile" d="M -25,-25 L 25,-25 25,25 -25,25 z"/>
+          <path class="line" d="M 0,-25 L 0,0 L 25,0"/>
+        </g></g>
+        <g id="sqr-tb"><g>
+          <path class="tile" d="M -25,-25 L 25,-25 25,25 -25,25 z"/>
+          <path class="line" d="M 0,-25 L 0,25"/>
+        </g></g>
+        <g id="sqr-trb"><g>
+          <path class="tile" d="M -25,-25 L 25,-25 25,25 -25,25 z"/>
+          <path class="line" d="M 0,-25 L 0,25 M 0,0 L 25,0"/>
+        </g></g>
+        <g id="sqr-trbl"><g>
+          <path class="tile" d="M -25,-25 L 25,-25 25,25 -25,25 z"/>
+          <path class="line" d="M 0,-25 L 0,25 M -25,0 L 25,0"/>
+        </g></g>
+      </defs>
+      <g id="sqrgrid"/>
+    </svg>
+  </div>
+</body>
 
 </html>

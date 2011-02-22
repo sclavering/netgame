@@ -1,54 +1,80 @@
-const sqrSize = 20;
-
 window.onload = function() {
   view.init();
   newGrid(9, 9);
 }
 
-const kTileSize = 20;
+const kTileSize = 50;
 
 const view = {
   init: function() {
-    const c = this._canvas = document.getElementById("netgame-view");
-    this._context = c.getContext("2d");
-    delete this.init
+    const ids = {
+      _svg: 'gameview',
+      _gridview: 'sqrgrid',
+      _template_none: 'sqr-none',
+      _template_t: 'sqr-t',
+      _template_tr: 'sqr-tr',
+      _template_tb: 'sqr-tb',
+      _template_trb: 'sqr-trb',
+      _template_trbl: 'sqr-trbl',
+    };
+    for(var [k, v] in Iterator(ids)) this[k] = document.getElementById(v);
+    delete this.init;
   },
 
   _grid: null,
-  _canvas: null,  // <canvas>
-  _context: null, // nsIDOMCanvasRenderingContext2D
+  _svg: null,
+  _gridview: null,
+  _views: null,
 
   show: function(grid) {
     this._grid = grid;
-    const canvas = this._canvas, context = this._context;
-    var w, h;
-    canvas.width = w = grid.width * kTileSize;
-    canvas.height = h = grid.height * kTileSize;
-    context.clearRect(0, 0, w, h);
-    for(var x = 0; x != grid.width; ++x)
-      for(var y = 0; y != grid.height; ++y)
-        this.update(x, y);
+    const gv = this._gridview;
+    while(gv.hasChildNodes()) gv.removeChild(gv.lastChild);
+    const vb = this._svg.viewBox.baseVal;
+    vb.width = grid.width * 50;
+    vb.height = grid.height * 50;
+    const tvs = this._tileviews = new Array(grid.width);
+    for(var x = 0; x != grid.width; ++x) {
+      tvs[x] = new Array(grid.height);
+      for(var y = 0; y != grid.height; ++y) {
+        tvs[x][y] = this._make_tile(x, y);
+      }
+    }
   },
 
-  update: function(x, y) {
-    const context = this._context;
-    const pxx = x * kTileSize, pxy = y * kTileSize;
-    context.clearRect(pxx, pxy, kTileSize, kTileSize);
-    
-    const cell = this._grid[x][y], links = cell.links;
-    const xs = [0, 10, 0, -10]; // (x,y) offset from tile center for each link's line
-    const ys = [-10, 0, 10, 0];
-    const cx = pxx + 10, cy = pxy + 10; // central pixels of tile
-    context.beginPath();
-    dump("cell "+x+" "+y+" has links: "+links+"\n");
-    for(var i = 0; i != 4; ++i) {
-      if(!links[i]) continue;
-      context.moveTo(cx, cy);
-      context.lineTo(cx + xs[i], cy + ys[i])
-    }
-    context.closePath();
-    context.stroke();
-  }
+  _make_tile: function(x, y) {
+    const cell = this._grid[x][y];
+    const [shape, base_angle] = this._calculate_shape(cell);
+    const view = this['_template_' + shape].cloneNode(true);
+    view.removeAttribute('id');
+    const view_x = x * 50 + 25, view_y = y * 50 + 25;
+    view.setAttribute('transform', 'translate(' + view_x + ',' + view_y + ') rotate(' + base_angle + ')');
+    this._gridview.appendChild(view);
+    return view;
+  },
+
+  _calculate_shape: function(tile) {
+    const links = tile.links;
+    const links_sum = links[3] * 8 + links[2] * 4 + links[1] * 2 + links[0];
+    return ({
+        0: ['none', 0],
+        1: ['t', 0],
+        2: ['t', 90],
+        3: ['tr', 0],
+        4: ['t', 180],
+        5: ['tb', 0],
+        6: ['tr', 90],
+        7: ['trb', 0],
+        8: ['t', 270],
+        9: ['tr', 270],
+        10: ['tb', 90],
+        11: ['trb', 270],
+        12: ['tr', 180],
+        13: ['trb', 180],
+        14: ['trb', 90],
+        15: ['trbl', 0],
+      })[links_sum];
+  },
 }
 
 function onClick(e) {
@@ -194,7 +220,6 @@ Cell.prototype = {
       var adj = adjs[i];
       if(adj && adj.isLinked) linked.push(i);
     }
-    //dump("cell ("+this.x+","+this.y+"), has "+linked.length+" linked adjs\n");
 
     do { var ran = Math.random(); } while(ran == 1.0);
     ran = Math.floor(ran * linked.length);

@@ -1,0 +1,41 @@
+body {
+  font-family: sans-serif;
+}
+
+
+#status-panel {
+  position: fixed;
+  right: 0;
+  width: 100px;
+  bottom: 0;
+  top: 0;
+}
+
+
+#wrapper {
+  border: 0;
+  position: fixed;
+  top: 0;
+  right: 100px;
+  bottom: 0;
+  left: 0;
+}
+
+
+.tile {
+  fill: green;
+  stroke-width: 1px;
+  stroke: white;
+}
+
+.line {
+  stroke-width: 5px;
+  stroke: black;
+  fill: none;
+  pointer-events: none;
+  stroke-linecap: round;
+}
+
+.node {
+  fill: pink;
+}
