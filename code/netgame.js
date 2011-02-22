@@ -132,7 +132,7 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
   }
 
   // Add some "walls" (extra barriers between cells which should be adjacent)
-  for(var i = 0; i != walls; ++i) {
+  for(var i = 0; i != walls; ) {
     do { x = Math.random(); } while(x == 1.0);
     do { y = Math.random(); } while(y == 1.0);
     do { var adj = Math.random(); } while(adj == 1.0);
@@ -142,12 +142,10 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
 
     cell = grid[x][y];
     var adjcell = grid[x][y].adj[adj];
-    if(adjcell) {
-      adjcell.adj[(adj + 2) % 4] = null;
-      cell.adj[adj] = null;
-    } else {
-      --i;
-    }
+    if(!adjcell) continue;
+    adjcell.adj[(adj + 2) % 4] = null;
+    cell.adj[adj] = null;
+    ++i;
   }
 
   return grid;
