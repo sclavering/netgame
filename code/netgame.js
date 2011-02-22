@@ -178,14 +178,14 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
   for(x = 0; x != width; ++x) {
     for(y = 0; y != width; ++y) {
       var cell = grid[x][y];
-      if(x != 0) cell.left = grid[x - 1][y];
-      else if(xWrap) cell.left = grid[xmax][y];
-      if(x != xmax) cell.right = grid[x + 1][y];
-      else if(xWrap) cell.right = grid[0][y];
-      if(y != 0) cell.up = grid[x][y - 1];
-      else if(yWrap) cell.up = grid[x][ymax];
-      if(y != ymax) cell.down = grid[x][y + 1];
-      else if(yWrap) cell.down = grid[x][0];
+      if(x != 0) cell.adj[3] = grid[x - 1][y];
+      else if(xWrap) cell.adj[3] = grid[xmax][y];
+      if(x != xmax) cell.adj[1] = grid[x + 1][y];
+      else if(xWrap) cell.adj[1] = grid[0][y];
+      if(y != 0) cell.adj[0] = grid[x][y - 1];
+      else if(yWrap) cell.adj[0] = grid[x][ymax];
+      if(y != ymax) cell.adj[2] = grid[x][y + 1];
+      else if(yWrap) cell.adj[2] = grid[x][0];
     }
   }
 
@@ -266,15 +266,6 @@ Cell.prototype = {
   isLinked: false,
 
   _rotation: 0, // [0 .. 4)
-
-  get up() { return this.adj[0]; },
-  set up(val) { return this.adj[0] = val; },
-  get down() { return this.adj[2]; },
-  set down(val) { return this.adj[2] = val; },
-  get right() { return this.adj[1]; },
-  set right(val) { return this.adj[1] = val; },
-  get left() { return this.adj[3]; },
-  set left(val) { return this.adj[3] = val; },
 
   // link this cell to a random adjacent unlinked cell
   linkToRandomAdj: function() {
