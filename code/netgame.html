@@ -41,6 +41,18 @@
       <g id="sqrgrid"/>
     </svg>
   </div>
+
+  <div id="youwin" style="display: none">
+    <p>You Win!</p>
+  </div>
+
+  <form id="settings" onsubmit="do_change_settings(this); return false" style="display: none">
+    <button id="settingsclose" onclick="do_close_settings();">×</button>
+    <p>Width: <input name="width" /></p>
+    <p>Height: <input name="height" /></p>
+    <p><input name="checkbox" /> Wrap grid</p>
+    <input type="submit" value="Save" />
+  </form>
 </body>
 
 </html>
