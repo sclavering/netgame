@@ -146,7 +146,7 @@ const view = {
 
 
 function newGrid(width, height) {
-  const grid = createEmptyGrid(width, height, false, false, 10);
+  const grid = create_empty_grid(width, height, false, false, 10);
   fillGrid(grid);
   for(var x = 0; x != width; ++x)
     for(var y = 0; y != height; ++y)
@@ -155,8 +155,7 @@ function newGrid(width, height) {
 }
 
 
-// xWrap, yWrap are bools, all others are integers
-function createEmptyGrid(width, height, xWrap, yWrap, walls) {
+function create_empty_grid(width, height, wrap, walls) {
   const grid = new Array(width);
   grid.width = width;
   grid.height = height;
@@ -173,13 +172,13 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
     for(y = 0; y != width; ++y) {
       var cell = grid[x][y];
       if(x != xmax) cell.adj[1] = grid[x + 1][y];
-      else if(xWrap) cell.adj[1] = grid[0][y];
+      else if(wrap) cell.adj[1] = grid[0][y];
       if(y != 0) cell.adj[0] = grid[x][y - 1];
-      else if(yWrap) cell.adj[0] = grid[x][ymax];
+      else if(wrap) cell.adj[0] = grid[x][ymax];
       if(y != ymax) cell.adj[2] = grid[x][y + 1];
-      else if(yWrap) cell.adj[2] = grid[x][0];
+      else if(wrap) cell.adj[2] = grid[x][0];
       if(x != 0) cell.adj[3] = grid[x - 1][y];
-      else if(xWrap) cell.adj[3] = grid[xmax][y];
+      else if(wrap) cell.adj[3] = grid[xmax][y];
     }
   }
 
