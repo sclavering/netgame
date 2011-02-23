@@ -43,13 +43,9 @@ const view = {
     vb.width = grid.width * kTileSize;
     vb.height = grid.height * kTileSize;
     // Draw the tile backgrounds first, so they're lowest in z-order
-    for(var x = 0; x != grid.width; ++x) {
-      for(var y = 0; y != grid.height; ++y) {
-        var tv = this._add_transformed_clone('tile', 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
-        tv.__isTile = true;
-        tv.__x = x;
-        tv.__y = y;
-      }
+    for each(var c in grid.cells) {
+      var tv = this._add_transformed_clone('tile', 'translate(' + (c.x * kTileSize) + ', ' + (c.y * kTileSize) + ')');
+      tv.__cell = c;
     }
     // Draw the links/nodes in the tiles
     const tvs = this._tileviews = new Array(grid.width);
@@ -61,14 +57,12 @@ const view = {
       }
     }
     // draw the walls (after the tiles, so they come above in z-order)
-    for(var x = 0; x != grid.width; ++x) {
-      for(var y = 0; y != grid.height; ++y) {
-        var cell = grid[x][y], adj = cell.adj;
-        if(!x && !adj[3]) this._draw_wall('wall_v', x, y);
-        if(!adj[1]) this._draw_wall('wall_v', x + 1, y);
-        if(!y && !adj[0]) this._draw_wall('wall_h', x, y);
-        if(!adj[2]) this._draw_wall('wall_h', x, y + 1);
-      }
+    for each(var cell in grid.cells) {
+      var adj = cell.adj, x = cell.x, y = cell.y;
+      if(!x && !adj[3]) this._draw_wall('wall_v', x, y);
+      if(!adj[1]) this._draw_wall('wall_v', x + 1, y);
+      if(!y && !adj[0]) this._draw_wall('wall_h', x, y);
+      if(!adj[2]) this._draw_wall('wall_h', x, y + 1);
     }
     this.update_poweredness();
     const self = this;
@@ -124,9 +118,7 @@ const view = {
   update_poweredness: function() {
     const g = this._grid, w = g.width, h = g.height, tvs = this._tileviews;
     const powered_id_set = which_cells_are_powered(g);
-    for(var x = 0; x != w; ++x)
-      for(var y = 0; y != h; ++y)
-        tvs[x][y].className.baseVal = g[x][y].id in powered_id_set ? 'powered' : '';
+    for each(var c in g.cells) tvs[c.x][c.y].className.baseVal = c.id in powered_id_set ? 'powered' : '';
   },
 
   _draw_wall: function(wall, x, y) {
@@ -135,11 +127,10 @@ const view = {
 
   _onclick: function(ev) {
     const g = ev.target;
-    if(!g.__isTile) return;
-    const x = g.__x, y = g.__y;
-    const cell = this._grid[x][y];
+    if(!g.__cell) return;
+    const cell = g.__cell;
     cell.rotate_clockwise();
-    this.update_tile_view(x, y);
+    this.update_tile_view(cell.x, cell.y);
     this.update_poweredness();
   },
 };
@@ -148,9 +139,8 @@ const view = {
 function newGrid(width, height) {
   const grid = create_empty_grid(width, height, false, false, 10);
   fillGrid(grid);
-  for(var x = 0; x != width; ++x)
-    for(var y = 0; y != height; ++y)
-      grid[x][y]._rotation = random_int(4);
+  grid.cells = Array.concat.apply(null, grid);
+  for each(var c in grid.cells) c._rotation = random_int(4);
   view.show(grid);
 }
 
