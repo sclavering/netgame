@@ -30,7 +30,7 @@ body {
 
 .wall {
   stroke: red;
-  stroke-width: 3px;
+  stroke-width: 5px;
   stroke-linecap: round;
 }
 
