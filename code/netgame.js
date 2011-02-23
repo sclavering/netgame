@@ -146,18 +146,12 @@ const view = {
 
 
 function newGrid(width, height) {
-  const grid = createGrid(width, height);
+  const grid = createEmptyGrid(width, height, false, false, 10);
+  fillGrid(grid);
   for(var x = 0; x != width; ++x)
     for(var y = 0; y != height; ++y)
       grid[x][y]._rotation = random_int(4);
   view.show(grid);
-}
-
-
-function createGrid(width, height) {
-  const grid = createEmptyGrid(width, height, false, false, 10);
-  fillGrid(grid);
-  return grid;
 }
 
 
