@@ -142,7 +142,7 @@ const view = {
     this.update_tile_view(x, y);
     this.update_poweredness();
   },
-}
+};
 
 
 function newGrid(width, height) {
@@ -178,14 +178,14 @@ function createEmptyGrid(width, height, xWrap, yWrap, walls) {
   for(x = 0; x != width; ++x) {
     for(y = 0; y != width; ++y) {
       var cell = grid[x][y];
-      if(x != 0) cell.adj[3] = grid[x - 1][y];
-      else if(xWrap) cell.adj[3] = grid[xmax][y];
       if(x != xmax) cell.adj[1] = grid[x + 1][y];
       else if(xWrap) cell.adj[1] = grid[0][y];
       if(y != 0) cell.adj[0] = grid[x][y - 1];
       else if(yWrap) cell.adj[0] = grid[x][ymax];
       if(y != ymax) cell.adj[2] = grid[x][y + 1];
       else if(yWrap) cell.adj[2] = grid[x][0];
+      if(x != 0) cell.adj[3] = grid[x - 1][y];
+      else if(xWrap) cell.adj[3] = grid[xmax][y];
     }
   }
 
