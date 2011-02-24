@@ -46,20 +46,13 @@ const view = {
     gridview.onclick = function(ev) { self._onclick(ev) };
   },
 
-  _add_transformed_clone: function(template_id, transform) {
-    const el = svg_templates[template_id].cloneNode(true);
-    el.setAttribute('transform', transform);
-    gridview.appendChild(el);
-    return el;
-  },
-
   update_poweredness: function() {
     const powered_id_set = which_cells_are_powered(this._grid);
     for each(var c in this._grid.cells) c.show_powered(c.id in powered_id_set);
   },
 
   _draw_wall: function(wall, x, y) {
-    this._add_transformed_clone(wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
+    add_transformed_clone(gridview, wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
   },
 
   _onclick: function(ev) {
@@ -197,42 +190,21 @@ Cell.prototype = {
   },
 
   draw_bg: function() {
-    var tv = view._add_transformed_clone('sqr-tile', 'translate(' + (this.x * kTileSize) + ', ' + (this.y * kTileSize) + ')');
+    var tv = add_transformed_clone(gridview, 'sqr-tile', 'translate(' + (this.x * kTileSize) + ', ' + (this.y * kTileSize) + ')');
     tv.__cell = this;
   },
 
   draw_fg: function() {
-    const [shape, base_angle] = this._calculate_shape();
-    const cv = this._view = view._add_transformed_clone(shape, 'translate(' + (this.x * kTileSize + kTileHalf) + ',' + (this.y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
-    if(this.isSource) {
-      const core = svg_templates['sqr-core'].cloneNode(true);
-      cv.firstChild.appendChild(core);
-    }
+    const cv = this._view = add_transformed_clone(gridview, 'gg', 'translate(' + (this.x * kTileSize + kTileHalf) + ',' + (this.y * kTileSize + kTileHalf) + ')');
+    const inner = cv.firstChild, ls = this.links;
+    if(ls[0]) add_transformed_clone(inner, 'sqr-line', '');
+    if(ls[1]) add_transformed_clone(inner, 'sqr-line', 'rotate(90)');
+    if(ls[2]) add_transformed_clone(inner, 'sqr-line', 'rotate(180)');
+    if(ls[3]) add_transformed_clone(inner, 'sqr-line', 'rotate(270)');
+    if(ls[0] + ls[1] + ls[2] + ls[3] === 1) add_transformed_clone(inner, 'sqr-node', '');
+    if(this.isSource) add_transformed_clone(inner, 'sqr-core', '')
     gridview.appendChild(cv);
     this.redraw(); // to handle the initial random rotation
-  },
-
-  _calculate_shape: function() {
-    const links = this.links;
-    const links_sum = links[3] * 8 + links[2] * 4 + links[1] * 2 + links[0];
-    return ({
-        0: ['sqr-none', 0],
-        1: ['sqr-t', 0],
-        2: ['sqr-t', 90],
-        3: ['sqr-tr', 0],
-        4: ['sqr-t', 180],
-        5: ['sqr-tb', 0],
-        6: ['sqr-tr', 90],
-        7: ['sqr-trb', 0],
-        8: ['sqr-t', 270],
-        9: ['sqr-tr', 270],
-        10: ['sqr-tb', 90],
-        11: ['sqr-trb', 270],
-        12: ['sqr-tr', 180],
-        13: ['sqr-trb', 180],
-        14: ['sqr-trb', 90],
-        15: ['sqr-trbl', 0],
-      })[links_sum];
   },
 
   redraw: function(x, y) {
@@ -274,4 +246,12 @@ function random_int(max) {
   var r;
   do { r = Math.random(); } while(r == 1.0);
   return Math.floor(r * max);
+}
+
+
+function add_transformed_clone(parent, template_id, transform) {
+  const el = svg_templates[template_id].cloneNode(true);
+  el.setAttribute('transform', transform);
+  parent.appendChild(el);
+  return el;
 }
