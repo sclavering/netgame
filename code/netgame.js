@@ -1,50 +1,36 @@
+var svg = null;
+var gridview = null;
+const svg_templates = {};
+
 window.onload = function() {
-  view.init();
+  svg = document.getElementById('gameview');
+  for each(var el in svg.getElementsByTagName('defs')[0].childNodes) {
+    if(!el.id) continue;
+    svg_templates[el.id] = el;
+    el.removeAttribute('id'); // because we clone them
+  }
+  gridview = document.getElementById('sqrgrid');
   newGrid(9, 9);
 }
+
 
 const kTileSize = 50;
 const kTileHalf = 25;
 
-const view = {
-  init: function() {
-    this._svg = document.getElementById('gameview');
-    this._gridview = document.getElementById('sqrgrid');
-    const ids = {
-      tile: 'sqr-tile',
-      wall_v: 'wall-v',
-      wall_h: 'wall-h',
-      core: 'sqr-core',
-      t: 'sqr-t',
-      tr: 'sqr-tr',
-      tb: 'sqr-tb',
-      trb: 'sqr-trb',
-      trbl: 'sqr-trbl',
-    };
-    const sts = this._svg_templates = {};
-    for(var [k, v] in Iterator(ids)) {
-      sts[k] = document.getElementById(v);
-      sts[k].removeAttribute('id'); // because we're going to clone it a lot
-    }
-    this.init = null; // make repeated init() fail
-  },
 
+const view = {
   _grid: null,
-  _svg: null,
-  _svg_templates: null,
-  _gridview: null,
   _views: null,
 
   show: function(grid) {
     this._grid = grid;
-    const gv = this._gridview;
-    while(gv.hasChildNodes()) gv.removeChild(gv.lastChild);
-    const vb = this._svg.viewBox.baseVal;
+    while(gridview.hasChildNodes()) gridview.removeChild(gridview.lastChild);
+    const vb = svg.viewBox.baseVal;
     vb.width = grid.width * kTileSize;
     vb.height = grid.height * kTileSize;
     // Draw the tile backgrounds first, so they're lowest in z-order
     for each(var c in grid.cells) {
-      var tv = this._add_transformed_clone('tile', 'translate(' + (c.x * kTileSize) + ', ' + (c.y * kTileSize) + ')');
+      var tv = this._add_transformed_clone('sqr-tile', 'translate(' + (c.x * kTileSize) + ', ' + (c.y * kTileSize) + ')');
       tv.__cell = c;
     }
     // Draw the links/nodes in the tiles
@@ -59,20 +45,20 @@ const view = {
     // draw the walls (after the tiles, so they come above in z-order)
     for each(var cell in grid.cells) {
       var adj = cell.adj, x = cell.x, y = cell.y;
-      if(!x && !adj[3]) this._draw_wall('wall_v', x, y);
-      if(!adj[1]) this._draw_wall('wall_v', x + 1, y);
-      if(!y && !adj[0]) this._draw_wall('wall_h', x, y);
-      if(!adj[2]) this._draw_wall('wall_h', x, y + 1);
+      if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
+      if(!adj[1]) this._draw_wall('sqr-wall-v', x + 1, y);
+      if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
+      if(!adj[2]) this._draw_wall('sqr-wall-h', x, y + 1);
     }
     this.update_poweredness();
     const self = this;
-    gv.onclick = function(ev) { self._onclick(ev) };
+    gridview.onclick = function(ev) { self._onclick(ev) };
   },
 
   _add_transformed_clone: function(template_id, transform) {
-    const el = this._svg_templates[template_id].cloneNode(true);
+    const el = svg_templates[template_id].cloneNode(true);
     el.setAttribute('transform', transform);
-    this._gridview.appendChild(el);
+    gridview.appendChild(el);
     return el;
   },
 
@@ -81,10 +67,10 @@ const view = {
     const [shape, base_angle] = this._calculate_shape(cell);
     const view = this._add_transformed_clone(shape, 'translate(' + (x * kTileSize + kTileHalf) + ',' + (y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
     if(cell.isSource) {
-      const core = this._svg_templates.core.cloneNode(true);
+      const core = svg_templates['sqr-core'].cloneNode(true);
       view.firstChild.appendChild(core);
     }
-    this._gridview.appendChild(view);
+    gridview.appendChild(view);
     return view;
   },
 
@@ -92,22 +78,22 @@ const view = {
     const links = tile.links;
     const links_sum = links[3] * 8 + links[2] * 4 + links[1] * 2 + links[0];
     return ({
-        0: ['none', 0],
-        1: ['t', 0],
-        2: ['t', 90],
-        3: ['tr', 0],
-        4: ['t', 180],
-        5: ['tb', 0],
-        6: ['tr', 90],
-        7: ['trb', 0],
-        8: ['t', 270],
-        9: ['tr', 270],
-        10: ['tb', 90],
-        11: ['trb', 270],
-        12: ['tr', 180],
-        13: ['trb', 180],
-        14: ['trb', 90],
-        15: ['trbl', 0],
+        0: ['sqr-none', 0],
+        1: ['sqr-t', 0],
+        2: ['sqr-t', 90],
+        3: ['sqr-tr', 0],
+        4: ['sqr-t', 180],
+        5: ['sqr-tb', 0],
+        6: ['sqr-tr', 90],
+        7: ['sqr-trb', 0],
+        8: ['sqr-t', 270],
+        9: ['sqr-tr', 270],
+        10: ['sqr-tb', 90],
+        11: ['sqr-trb', 270],
+        12: ['sqr-tr', 180],
+        13: ['sqr-trb', 180],
+        14: ['sqr-trb', 90],
+        15: ['sqr-trbl', 0],
       })[links_sum];
   },
 
