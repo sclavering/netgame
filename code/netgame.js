@@ -58,7 +58,8 @@ function new_grid(width, height) {
   fill_grid(grid);
   grid.cells = Array.concat.apply(null, grid);
   add_walls(grid, 0.1);
-  for each(var c in grid.cells) c._rotation = random_int(4);
+  const max_rotation = grid.cells[0].adj.length;
+  for each(var c in grid.cells) c._rotation = random_int(max_rotation);
   view.show(grid);
 }
 
@@ -98,29 +99,27 @@ function fill_grid(grid) {
   const width = grid.length, height = grid[0].length;
 
   const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
-  source.isSource = true;
-  grid.sourceCell = source;
+  source.is_source = true;
+  grid.source_cell = source;
 
   const linked = {};
   linked[source.id] = true;
 
-  const fringe0 = source.adj;
   const fringe = [];
-  const uniq = new Array(width * height); // ensures uniqueness of elements of |fringe|
-  for(var i = 0; i != 4; ++i) {
-    var fr = fringe0[i];
-    if(!fringe0[i]) continue;
+  const fringe_set = {};
+  for each(var fr in source.adj) {
+    if(!fr) continue;
     fringe.push(fr);
-    uniq[fr.id] = true;
+    fringe_set[fr.id] = true;
   }
 
   // Repeatedly pick a random cell from the fringe, link it into the network, and add its unlinked adjacents to the fringe.
   for(var num = fringe.length; num; num = fringe.length) {
     var cell = fringe.splice(random_int(num), 1)[0];
-    var adjs = cell.adj;
 
+    var adjs = cell.adj, len = adjs.length;
     var linked_adj_ixs = [];
-    for(var i = 0; i != 4; ++i) {
+    for(var i = 0; i != len; ++i) {
       var adj = adjs[i];
       if(adj && linked[adj.id]) linked_adj_ixs.push(i);
     }
@@ -131,9 +130,9 @@ function fill_grid(grid) {
     linked[cell.id] = true;
 
     for each(var adj in cell.adj) {
-      if(!adj || linked[adj.id] || uniq[adj.id]) continue;
+      if(!adj || linked[adj.id] || fringe_set[adj.id]) continue;
       fringe.push(adj);
-      uniq[adj.id] = true;
+      fringe_set[adj.id] = true;
     }
   }
 
@@ -162,7 +161,7 @@ function Cell(x, y, id) {
   this.links = [0, 0, 0, 0];
 }
 Cell.prototype = {
-  isSource: false,
+  is_source: false,
 
   _rotation: 0, // [0 .. 4)
 
@@ -189,7 +188,7 @@ Cell.prototype = {
     if(ls[2]) add_transformed_clone(inner, 'sqr-line', 'rotate(180)');
     if(ls[3]) add_transformed_clone(inner, 'sqr-line', 'rotate(270)');
     if(ls[0] + ls[1] + ls[2] + ls[3] === 1) add_transformed_clone(inner, 'sqr-node', '');
-    if(this.isSource) add_transformed_clone(inner, 'sqr-core', '')
+    if(this.is_source) add_transformed_clone(inner, 'sqr-core', '')
     gridview.appendChild(cv);
     this.redraw(); // to handle the initial random rotation
   },
@@ -219,12 +218,12 @@ Cell.prototype = {
 // Rotating a cell can power or depower abitrarily many others, so it doesn't make sense to store powered-ness as a property of the cell.  Instead, we build sets of powered node as-needed.
 function which_cells_are_powered(grid) {
   const powered = {};
-  const queue = [grid.sourceCell];
+  const queue = [grid.source_cell];
   for(var i = 0; i < queue.length; ++i) {
-    var cell = queue[i];
+    var cell = queue[i], adjs = cell.adj, len = adjs.length;
     powered[cell.id] = true;
-    for(var dir = 0; dir !== 4; ++dir) {
-      var adj = cell.adj[dir];
+    for(var dir = 0; dir !== len; ++dir) {
+      var adj = adjs[dir];
       if(!adj) continue;
       if(!cell.has_current_link_to(dir)) continue;
       if(!adj.has_current_link_to(invert_direction(dir))) continue;
