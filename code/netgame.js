@@ -10,7 +10,7 @@ window.onload = function() {
     el.removeAttribute('id'); // because we clone them
   }
   gridview = document.getElementById('sqrgrid');
-  newGrid(9, 9);
+  new_grid(9, 9);
 }
 
 
@@ -28,19 +28,10 @@ const view = {
     const vb = svg.viewBox.baseVal;
     vb.width = grid.width * kTileSize;
     vb.height = grid.height * kTileSize;
-
-    // Draw backgrounds, then links/nodes, then walls.  For z-ordering.
+    // Draw each group of things separately for z-ordering
     for each(var c in grid.cells) c.draw_bg();
     for each(var c in grid.cells) c.draw_fg();
-
-    for each(var cell in grid.cells) {
-      var adj = cell.adj, x = cell.x, y = cell.y;
-      if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
-      if(!adj[1]) this._draw_wall('sqr-wall-v', x + 1, y);
-      if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
-      if(!adj[2]) this._draw_wall('sqr-wall-h', x, y + 1);
-    }
-
+    for each(var c in grid.cells) c.draw_walls();
     this.update_poweredness();
     const self = this;
     gridview.onclick = function(ev) { self._onclick(ev) };
@@ -49,10 +40,6 @@ const view = {
   update_poweredness: function() {
     const powered_id_set = which_cells_are_powered(this._grid);
     for each(var c in this._grid.cells) c.show_powered(c.id in powered_id_set);
-  },
-
-  _draw_wall: function(wall, x, y) {
-    add_transformed_clone(gridview, wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
   },
 
   _onclick: function(ev) {
@@ -66,7 +53,7 @@ const view = {
 };
 
 
-function newGrid(width, height) {
+function new_grid(width, height) {
   const grid = create_empty_grid(width, height, false);
   fill_grid(grid);
   grid.cells = Array.concat.apply(null, grid);
@@ -213,6 +200,18 @@ Cell.prototype = {
 
   show_powered: function(is_powered) {
     this._view.className.baseVal = is_powered ? 'powered' : '';
+  },
+
+  draw_walls: function() {
+    const x = this.x, y = this.y, adj = this.adj;
+    if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
+    if(!adj[1]) this._draw_wall('sqr-wall-v', x + 1, y);
+    if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
+    if(!adj[2]) this._draw_wall('sqr-wall-h', x, y + 1);
+  },
+
+  _draw_wall: function(wall, x, y) {
+    add_transformed_clone(gridview, wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
   },
 };
 
