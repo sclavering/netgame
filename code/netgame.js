@@ -138,7 +138,7 @@ const view = {
 
 function newGrid(width, height) {
   const grid = create_empty_grid(width, height, false, false, 10);
-  fillGrid(grid);
+  fill_grid(grid);
   grid.cells = Array.concat.apply(null, grid);
   for each(var c in grid.cells) c._rotation = random_int(4);
   view.show(grid);
@@ -190,13 +190,15 @@ function create_empty_grid(width, height, wrap, walls) {
 }
 
 
-function fillGrid(grid) {
+function fill_grid(grid) {
   const width = grid.length, height = grid[0].length;
 
   const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
   source.isSource = true;
-  source.isLinked = true;
   grid.sourceCell = source;
+
+  const linked = {};
+  linked[source.id] = true;
 
   const fringe0 = source.adj;
   const fringe = [];
@@ -208,17 +210,24 @@ function fillGrid(grid) {
     uniq[fr.id] = true;
   }
 
+  // Repeatedly pick a random cell from the fringe, link it into the network, and add its unlinked adjacents to the fringe.
   for(var num = fringe.length; num; num = fringe.length) {
-    // pick a random cell from the fringe
     var cell = fringe.splice(random_int(num), 1)[0];
-
-    // link it into the network, and add its unlinked adjs to the fringe
-    cell.linkToRandomAdj();
-
     var adjs = cell.adj;
-    for(i = 0; i != 4; ++i) {
+
+    var linked_adj_ixs = [];
+    for(var i = 0; i != 4; ++i) {
       var adj = adjs[i];
-      if(!adj || adj.isLinked || uniq[adj.id]) continue;
+      if(adj && linked[adj.id]) linked_adj_ixs.push(i);
+    }
+
+    var random_dir = linked_adj_ixs[random_int(linked_adj_ixs.length)];
+    cell.links[random_dir] = 1;
+    cell.adj[random_dir].links[invert_direction(random_dir)] = 1;
+    linked[cell.id] = true;
+
+    for each(var adj in cell.adj) {
+      if(!adj || linked[adj.id] || uniq[adj.id]) continue;
       fringe.push(adj);
       uniq[adj.id] = true;
     }
@@ -241,31 +250,7 @@ function Cell(x, y, id) {
 Cell.prototype = {
   isSource: false,
 
-  // used only during grid construction.  has the cell been linked to the source yet?
-  isLinked: false,
-
   _rotation: 0, // [0 .. 4)
-
-  // link this cell to a random adjacent unlinked cell
-  linkToRandomAdj: function() {
-    const adjs = this.adj;
-
-    var linked = [];
-    for(var i = 0; i != 4; ++i) {
-      var adj = adjs[i];
-      if(adj && adj.isLinked) linked.push(i);
-    }
-
-    ran = random_int(linked.length);
-    ran = linked[ran]; // so it's a cell's index
-
-    this.links[ran] = 1;
-    this.isLinked = true;
-
-    var i2 = invert_direction(ran);
-    adj = adjs[ran];
-    adj.links[i2] = 1;
-  },
 
   has_current_link_to: function(dir) {
     dir -= this._rotation;
