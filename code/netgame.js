@@ -137,15 +137,16 @@ const view = {
 
 
 function newGrid(width, height) {
-  const grid = create_empty_grid(width, height, false, false, 10);
+  const grid = create_empty_grid(width, height, false);
   fill_grid(grid);
   grid.cells = Array.concat.apply(null, grid);
+  add_walls(grid, 0.1);
   for each(var c in grid.cells) c._rotation = random_int(4);
   view.show(grid);
 }
 
 
-function create_empty_grid(width, height, wrap, walls) {
+function create_empty_grid(width, height, wrap) {
   const grid = new Array(width);
   grid.width = width;
   grid.height = height;
@@ -170,20 +171,6 @@ function create_empty_grid(width, height, wrap, walls) {
       if(x != 0) cell.adj[3] = grid[x - 1][y];
       else if(wrap) cell.adj[3] = grid[xmax][y];
     }
-  }
-
-  // Add some "walls" (extra barriers between cells which should be adjacent)
-  for(var i = 0; i != walls; ) {
-    x = random_int(width);
-    y = random_int(height);
-    adj = random_int(4);
-
-    cell = grid[x][y];
-    var adjcell = grid[x][y].adj[adj];
-    if(!adjcell) continue;
-    adjcell.adj[invert_direction(adj)] = null;
-    cell.adj[adj] = null;
-    ++i;
   }
 
   return grid;
@@ -234,6 +221,16 @@ function fill_grid(grid) {
   }
 
   return grid;
+}
+
+
+// Walls are just hints, added after grid filling to make it easier to solve.
+function add_walls(grid, wall_probability) {
+  if(!wall_probability) return;
+  for each(var c in grid.cells) {
+    if(!c.links[0] && c.adj[0] && Math.random() < wall_probability) c.adj[0].adj[2] = null, c.adj[0] = null;
+    if(!c.links[3] && c.adj[3] && Math.random() < wall_probability) c.adj[3].adj[1] = null, c.adj[3] = null;
+  }
 }
 
 
