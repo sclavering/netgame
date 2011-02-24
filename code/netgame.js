@@ -29,17 +29,9 @@ const view = {
     vb.width = grid.width * kTileSize;
     vb.height = grid.height * kTileSize;
 
-    // Draw backgroudns, then links/nodes, then walls.  For z-ordering.
+    // Draw backgrounds, then links/nodes, then walls.  For z-ordering.
     for each(var c in grid.cells) c.draw_bg();
-
-    const tvs = this._tileviews = new Array(grid.width);
-    for(var x = 0; x != grid.width; ++x) {
-      tvs[x] = new Array(grid.height);
-      for(var y = 0; y != grid.height; ++y) {
-        tvs[x][y] = this._make_tile(x, y);
-        this.update_tile_view(x, y);
-      }
-    }
+    for each(var c in grid.cells) c.draw_fg();
 
     for each(var cell in grid.cells) {
       var adj = cell.adj, x = cell.x, y = cell.y;
@@ -61,49 +53,9 @@ const view = {
     return el;
   },
 
-  _make_tile: function(x, y) {
-    const cell = this._grid[x][y];
-    const [shape, base_angle] = this._calculate_shape(cell);
-    const view = this._add_transformed_clone(shape, 'translate(' + (x * kTileSize + kTileHalf) + ',' + (y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
-    if(cell.isSource) {
-      const core = svg_templates['sqr-core'].cloneNode(true);
-      view.firstChild.appendChild(core);
-    }
-    gridview.appendChild(view);
-    return view;
-  },
-
-  _calculate_shape: function(tile) {
-    const links = tile.links;
-    const links_sum = links[3] * 8 + links[2] * 4 + links[1] * 2 + links[0];
-    return ({
-        0: ['sqr-none', 0],
-        1: ['sqr-t', 0],
-        2: ['sqr-t', 90],
-        3: ['sqr-tr', 0],
-        4: ['sqr-t', 180],
-        5: ['sqr-tb', 0],
-        6: ['sqr-tr', 90],
-        7: ['sqr-trb', 0],
-        8: ['sqr-t', 270],
-        9: ['sqr-tr', 270],
-        10: ['sqr-tb', 90],
-        11: ['sqr-trb', 270],
-        12: ['sqr-tr', 180],
-        13: ['sqr-trb', 180],
-        14: ['sqr-trb', 90],
-        15: ['sqr-trbl', 0],
-      })[links_sum];
-  },
-
-  update_tile_view: function(x, y) {
-    this._tileviews[x][y].firstChild.setAttribute('transform', 'rotate(' + this._grid[x][y].current_angle() + ')');
-  },
-
   update_poweredness: function() {
-    const g = this._grid, w = g.width, h = g.height, tvs = this._tileviews;
-    const powered_id_set = which_cells_are_powered(g);
-    for each(var c in g.cells) tvs[c.x][c.y].className.baseVal = c.id in powered_id_set ? 'powered' : '';
+    const powered_id_set = which_cells_are_powered(this._grid);
+    for each(var c in this._grid.cells) c.show_powered(c.id in powered_id_set);
   },
 
   _draw_wall: function(wall, x, y) {
@@ -115,7 +67,7 @@ const view = {
     if(!g.__cell) return;
     const cell = g.__cell;
     cell.rotate_clockwise();
-    this.update_tile_view(cell.x, cell.y);
+    cell.redraw();
     this.update_poweredness();
   },
 };
@@ -240,10 +192,6 @@ Cell.prototype = {
     return !!this.links[dir];
   },
 
-  current_angle: function() {
-    return this._rotation * 90;
-  },
-
   rotate_clockwise: function() {
     this._rotation = [1, 2, 3, 0][this._rotation];
   },
@@ -251,6 +199,48 @@ Cell.prototype = {
   draw_bg: function() {
     var tv = view._add_transformed_clone('sqr-tile', 'translate(' + (this.x * kTileSize) + ', ' + (this.y * kTileSize) + ')');
     tv.__cell = this;
+  },
+
+  draw_fg: function() {
+    const [shape, base_angle] = this._calculate_shape();
+    const cv = this._view = view._add_transformed_clone(shape, 'translate(' + (this.x * kTileSize + kTileHalf) + ',' + (this.y * kTileSize + kTileHalf) + ') rotate(' + base_angle + ')');
+    if(this.isSource) {
+      const core = svg_templates['sqr-core'].cloneNode(true);
+      cv.firstChild.appendChild(core);
+    }
+    gridview.appendChild(cv);
+    this.redraw(); // to handle the initial random rotation
+  },
+
+  _calculate_shape: function() {
+    const links = this.links;
+    const links_sum = links[3] * 8 + links[2] * 4 + links[1] * 2 + links[0];
+    return ({
+        0: ['sqr-none', 0],
+        1: ['sqr-t', 0],
+        2: ['sqr-t', 90],
+        3: ['sqr-tr', 0],
+        4: ['sqr-t', 180],
+        5: ['sqr-tb', 0],
+        6: ['sqr-tr', 90],
+        7: ['sqr-trb', 0],
+        8: ['sqr-t', 270],
+        9: ['sqr-tr', 270],
+        10: ['sqr-tb', 90],
+        11: ['sqr-trb', 270],
+        12: ['sqr-tr', 180],
+        13: ['sqr-trb', 180],
+        14: ['sqr-trb', 90],
+        15: ['sqr-trbl', 0],
+      })[links_sum];
+  },
+
+  redraw: function(x, y) {
+    this._view.firstChild.setAttribute('transform', 'rotate(' + (this._rotation * 90) + ')');
+  },
+
+  show_powered: function(is_powered) {
+    this._view.className.baseVal = is_powered ? 'powered' : '';
   },
 };
 
