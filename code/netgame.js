@@ -28,12 +28,10 @@ const view = {
     const vb = svg.viewBox.baseVal;
     vb.width = grid.width * kTileSize;
     vb.height = grid.height * kTileSize;
-    // Draw the tile backgrounds first, so they're lowest in z-order
-    for each(var c in grid.cells) {
-      var tv = this._add_transformed_clone('sqr-tile', 'translate(' + (c.x * kTileSize) + ', ' + (c.y * kTileSize) + ')');
-      tv.__cell = c;
-    }
-    // Draw the links/nodes in the tiles
+
+    // Draw backgroudns, then links/nodes, then walls.  For z-ordering.
+    for each(var c in grid.cells) c.draw_bg();
+
     const tvs = this._tileviews = new Array(grid.width);
     for(var x = 0; x != grid.width; ++x) {
       tvs[x] = new Array(grid.height);
@@ -42,7 +40,7 @@ const view = {
         this.update_tile_view(x, y);
       }
     }
-    // draw the walls (after the tiles, so they come above in z-order)
+
     for each(var cell in grid.cells) {
       var adj = cell.adj, x = cell.x, y = cell.y;
       if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
@@ -50,6 +48,7 @@ const view = {
       if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
       if(!adj[2]) this._draw_wall('sqr-wall-h', x, y + 1);
     }
+
     this.update_poweredness();
     const self = this;
     gridview.onclick = function(ev) { self._onclick(ev) };
@@ -247,7 +246,12 @@ Cell.prototype = {
 
   rotate_clockwise: function() {
     this._rotation = [1, 2, 3, 0][this._rotation];
-  }
+  },
+
+  draw_bg: function() {
+    var tv = view._add_transformed_clone('sqr-tile', 'translate(' + (this.x * kTileSize) + ', ' + (this.y * kTileSize) + ')');
+    tv.__cell = this;
+  },
 };
 
 
