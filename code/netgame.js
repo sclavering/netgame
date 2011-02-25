@@ -95,7 +95,7 @@ function fill_grid(grid) {
 
     var random_dir = linked_adj_ixs[random_int(linked_adj_ixs.length)];
     cell.links[random_dir] = 1;
-    cell.adj[random_dir].links[Sqr.invert_direction(random_dir)] = 1;
+    cell.adj[random_dir].links[cell.invert_direction(random_dir)] = 1;
     linked[cell.id] = true;
 
     for each(var adj in cell.adj) {
