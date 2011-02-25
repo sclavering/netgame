@@ -52,10 +52,11 @@ const view = {
 };
 
 
-function new_grid(width, height, wrap, wall_freq) {
+function new_grid(width, height, wrap, wall_probability) {
   const grid = create_empty_grid(width, height, wrap);
   fill_grid(grid);
-  add_walls(grid, wall_freq);
+  // Walls are just hints, added after grid filling to make it easier to solve.
+  if(wall_probability) for each(var c in grid.cells) c.add_walls(wall_probability);
   const max_rotation = grid.cells[0].adj.length;
   for each(var c in grid.cells) c._rotation = random_int(max_rotation);
   view.show(grid);
@@ -67,7 +68,7 @@ function create_empty_grid(width, height, wrap) {
 
   function connect_adj(a, dir, b) {
     a.adj[dir] = b;
-    b.adj[invert_direction(dir)] = a;
+    b.adj[a.invert_direction(dir)] = a;
   }
 
   for(var x = 0; x != width; ++x) {
@@ -123,7 +124,7 @@ function fill_grid(grid) {
 
     var random_dir = linked_adj_ixs[random_int(linked_adj_ixs.length)];
     cell.links[random_dir] = 1;
-    cell.adj[random_dir].links[invert_direction(random_dir)] = 1;
+    cell.adj[random_dir].links[cell.invert_direction(random_dir)] = 1;
     linked[cell.id] = true;
 
     for each(var adj in cell.adj) {
@@ -134,16 +135,6 @@ function fill_grid(grid) {
   }
 
   return grid;
-}
-
-
-// Walls are just hints, added after grid filling to make it easier to solve.
-function add_walls(grid, wall_probability) {
-  if(!wall_probability) return;
-  for each(var c in grid.cells) {
-    if(!c.links[0] && c.adj[0] && Math.random() < wall_probability) c.adj[0].adj[2] = null, c.adj[0] = null;
-    if(!c.links[3] && c.adj[3] && Math.random() < wall_probability) c.adj[3].adj[1] = null, c.adj[3] = null;
-  }
 }
 
 
@@ -161,6 +152,20 @@ Cell.prototype = {
   is_source: false,
 
   _rotation: 0, // [0 .. 4)
+
+  add_walls: function(wall_probability) {
+    const links = this.links, adj = this.adj;
+    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[2] = null, adj[0] = null;
+    if(!links[3] && adj[3] && Math.random() < wall_probability) adj[3].adj[1] = null, adj[3] = null;
+  },
+
+  invert_direction: function(dir) {
+    return [2, 3, 0, 1][dir];
+  },
+
+  had_current_bidirectional_link: function(dir) {
+    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(this.invert_direction(dir));
+  },
 
   has_current_link_to: function(dir) {
     dir -= this._rotation;
@@ -221,19 +226,12 @@ function which_cells_are_powered(grid) {
     powered[cell.id] = true;
     for(var dir = 0; dir !== len; ++dir) {
       var adj = adjs[dir];
-      if(!adj) continue;
-      if(!cell.has_current_link_to(dir)) continue;
-      if(!adj.has_current_link_to(invert_direction(dir))) continue;
+      if(!adj || !cell.had_current_bidirectional_link(dir)) continue;
       if(powered[adj.id]) continue;
       queue.push(adj);
     }
   }
   return powered;
-}
-
-
-function invert_direction(dir) {
-  return [2, 3, 0, 1][dir];
 }
 
 
