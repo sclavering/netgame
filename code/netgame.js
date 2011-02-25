@@ -53,48 +53,13 @@ const view = {
 
 
 function new_grid(width, height, wrap, wall_probability) {
-  const grid = create_empty_grid(width, height, wrap);
+  const grid = create_grid_functions.sqr(width, height, wrap);
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
   if(wall_probability) for each(var c in grid.cells) c.add_walls(wall_probability);
   const max_rotation = grid.cells[0].adj.length;
   for each(var c in grid.cells) c._rotation = random_int(max_rotation);
   view.show(grid);
-}
-
-
-function create_empty_grid(width, height, wrap) {
-  const grid = new Array(width);
-
-  function connect_adj(a, dir, b) {
-    a.adj[dir] = b;
-    b.adj[a.invert_direction(dir)] = a;
-  }
-
-  for(var x = 0; x != width; ++x) {
-    grid[x] = new Array(height);
-    for(var y = 0; y != height; ++y) grid[x][y] = new Cell(x, y, x * width + y);
-  }
-  for(var x = 0; x != width; ++x) {
-    for(var y = 0; y != height; ++y) {
-      if(y) connect_adj(grid[x][y], 0, grid[x][y - 1]);
-      if(x) connect_adj(grid[x][y], 3, grid[x - 1][y]);
-    }
-  }
-  if(wrap) {
-    for(var x = 0; x != width; ++x) connect_adj(grid[x][0], 0, grid[x][height - 1]);
-    for(var y = 0; y != height; ++y) connect_adj(grid[0][y], 3, grid[width - 1][y]);
-  }
-
-  const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
-  source.is_source = true;
-
-  return {
-    view_width: width * kTileSize,
-    view_height: height * kTileSize,
-    cells: Array.concat.apply(null, grid),
-    source_cell: source,
-  };
 }
 
 
@@ -136,6 +101,76 @@ function fill_grid(grid) {
 
   return grid;
 }
+
+
+// Rotating a cell can power or depower abitrarily many others, so it doesn't make sense to store powered-ness as a property of the cell.  Instead, we build sets of powered node as-needed.
+function which_cells_are_powered(grid) {
+  const powered = {};
+  const queue = [grid.source_cell];
+  for(var i = 0; i < queue.length; ++i) {
+    var cell = queue[i], adjs = cell.adj, len = adjs.length;
+    powered[cell.id] = true;
+    for(var dir = 0; dir !== len; ++dir) {
+      var adj = adjs[dir];
+      if(!adj || !cell.had_current_bidirectional_link(dir)) continue;
+      if(powered[adj.id]) continue;
+      queue.push(adj);
+    }
+  }
+  return powered;
+}
+
+
+function random_int(max) {
+  var r;
+  do { r = Math.random(); } while(r == 1.0);
+  return Math.floor(r * max);
+}
+
+
+function add_transformed_clone(parent, template_id, transform) {
+  const el = svg_templates[template_id].cloneNode(true);
+  el.setAttribute('transform', transform);
+  parent.appendChild(el);
+  return el;
+}
+
+
+const create_grid_functions = {
+  sqr: function(width, height, wrap) {
+    const cells = new Array(width);
+
+    function connect_adj(a, dir, b) {
+      a.adj[dir] = b;
+      b.adj[a.invert_direction(dir)] = a;
+    }
+
+    for(var x = 0; x != width; ++x) {
+      cells[x] = new Array(height);
+      for(var y = 0; y != height; ++y) cells[x][y] = new Cell(x, y, x * width + y);
+    }
+    for(var x = 0; x != width; ++x) {
+      for(var y = 0; y != height; ++y) {
+        if(y) connect_adj(cells[x][y], 0, cells[x][y - 1]);
+        if(x) connect_adj(cells[x][y], 3, cells[x - 1][y]);
+      }
+    }
+    if(wrap) {
+      for(var x = 0; x != width; ++x) connect_adj(cells[x][0], 0, cells[x][height - 1]);
+      for(var y = 0; y != height; ++y) connect_adj(cells[0][y], 3, cells[width - 1][y]);
+    }
+
+    const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
+    source.is_source = true;
+
+    return {
+      view_width: width * kTileSize,
+      view_height: height * kTileSize,
+      cells: Array.concat.apply(null, cells),
+      source_cell: source,
+    };
+  }
+};
 
 
 function Cell(x, y, id) {
@@ -215,36 +250,3 @@ Cell.prototype = {
     add_transformed_clone(gridview, wall, 'translate(' + (x * kTileSize) + ', ' + (y * kTileSize) + ')');
   },
 };
-
-
-// Rotating a cell can power or depower abitrarily many others, so it doesn't make sense to store powered-ness as a property of the cell.  Instead, we build sets of powered node as-needed.
-function which_cells_are_powered(grid) {
-  const powered = {};
-  const queue = [grid.source_cell];
-  for(var i = 0; i < queue.length; ++i) {
-    var cell = queue[i], adjs = cell.adj, len = adjs.length;
-    powered[cell.id] = true;
-    for(var dir = 0; dir !== len; ++dir) {
-      var adj = adjs[dir];
-      if(!adj || !cell.had_current_bidirectional_link(dir)) continue;
-      if(powered[adj.id]) continue;
-      queue.push(adj);
-    }
-  }
-  return powered;
-}
-
-
-function random_int(max) {
-  var r;
-  do { r = Math.random(); } while(r == 1.0);
-  return Math.floor(r * max);
-}
-
-
-function add_transformed_clone(parent, template_id, transform) {
-  const el = svg_templates[template_id].cloneNode(true);
-  el.setAttribute('transform', transform);
-  parent.appendChild(el);
-  return el;
-}
