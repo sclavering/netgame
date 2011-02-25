@@ -66,7 +66,7 @@ function new_grid(width, height, wrap, wall_freq) {
 function create_empty_grid(width, height, wrap) {
   const grid = new Array(width);
 
-  function link(a, dir, b) {
+  function connect_adj(a, dir, b) {
     a.adj[dir] = b;
     b.adj[invert_direction(dir)] = a;
   }
@@ -77,13 +77,13 @@ function create_empty_grid(width, height, wrap) {
   }
   for(var x = 0; x != width; ++x) {
     for(var y = 0; y != height; ++y) {
-      if(y) link(grid[x][y], 0, grid[x][y - 1]);
-      if(x) link(grid[x][y], 3, grid[x - 1][y]);
+      if(y) connect_adj(grid[x][y], 0, grid[x][y - 1]);
+      if(x) connect_adj(grid[x][y], 3, grid[x - 1][y]);
     }
   }
   if(wrap) {
-    for(var x = 0; x != width; ++x) link(grid[x][0], 0, grid[x][height - 1]);
-    for(var y = 0; y != height; ++y) link(grid[0][y], 3, grid[width - 1][y]);
+    for(var x = 0; x != width; ++x) connect_adj(grid[x][0], 0, grid[x][height - 1]);
+    for(var y = 0; y != height; ++y) connect_adj(grid[0][y], 3, grid[width - 1][y]);
   }
 
   const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
