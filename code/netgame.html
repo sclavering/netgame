@@ -11,19 +11,25 @@
 
 <body>
   <div id="status-panel">
-    <button id="btn-new" onclick="new_grid(4, 4, false, 0.4)">New</button>
+    <button id="btn-new" onclick="new_grid('sqr', 4, 4, false, 0.4)">New</button>
   </div>
 
   <div id="wrapper">
     <svg id="gameview" xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
       <defs id="defs">
-        <path id="sqr-tile" class="tile" d="M 0,0 L 50,0 50,50 0,50 z"/>
         <g id="gg"><g/></g>
+
+        <rect id="sqr-tile" class="tile" width="50" height="50"/>
         <line id="sqr-line" class="line" y2="-25"/>
         <circle id="sqr-node" class="node" r="12"/>
         <rect id="sqr-core" class="core" x="-20" y="-20" width="40" height="40"/>
         <line id="sqr-wall-v" class="wall" y2="50"/>
         <line id="sqr-wall-h" class="wall" x2="50"/>
+
+        <path id="hex-tile" class="tile" d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z"/>
+        <line id="hex-spoke" class="line" y2="-65"/>
+        <circle id="hex-node" class="node" r="30"/>
+        <rect id="hex-core" class="core" x="-20" y="-20" width="40" height="40"/>
       </defs>
       <g id="sqrgrid"/>
     </svg>
