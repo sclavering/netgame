@@ -20,7 +20,6 @@ const kTileHalf = 25;
 
 const view = {
   _grid: null,
-  _views: null,
 
   show: function(grid) {
     this._grid = grid;
