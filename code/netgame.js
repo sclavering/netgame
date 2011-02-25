@@ -56,7 +56,6 @@ const view = {
 function new_grid(width, height, wrap, wall_freq) {
   const grid = create_empty_grid(width, height, wrap);
   fill_grid(grid);
-  grid.cells = Array.concat.apply(null, grid);
   add_walls(grid, wall_freq);
   const max_rotation = grid.cells[0].adj.length;
   for each(var c in grid.cells) c._rotation = random_int(max_rotation);
@@ -66,8 +65,6 @@ function new_grid(width, height, wrap, wall_freq) {
 
 function create_empty_grid(width, height, wrap) {
   const grid = new Array(width);
-  grid.width = width;
-  grid.height = height;
 
   function link(a, dir, b) {
     a.adj[dir] = b;
@@ -89,17 +86,20 @@ function create_empty_grid(width, height, wrap) {
     for(var y = 0; y != height; ++y) link(grid[0][y], 3, grid[width - 1][y]);
   }
 
-  return grid;
+  const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
+  source.is_source = true;
+
+  return {
+    width: width,
+    height: height,
+    cells: Array.concat.apply(null, grid),
+    source_cell: source,
+  };
 }
 
 
 function fill_grid(grid) {
-  const width = grid.length, height = grid[0].length;
-
-  const source = grid[Math.floor(width / 2)][Math.floor(height / 2)];
-  source.is_source = true;
-  grid.source_cell = source;
-
+  const source = grid.source_cell;
   const linked = {};
   linked[source.id] = true;
 
