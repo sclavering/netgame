@@ -26,8 +26,8 @@ const view = {
     this._grid = grid;
     while(gridview.hasChildNodes()) gridview.removeChild(gridview.lastChild);
     const vb = svg.viewBox.baseVal;
-    vb.width = grid.width * kTileSize;
-    vb.height = grid.height * kTileSize;
+    vb.width = grid.view_width;
+    vb.height = grid.view_height;
     // Draw each group of things separately for z-ordering
     for each(var c in grid.cells) c.draw_bg();
     for each(var c in grid.cells) c.draw_fg();
@@ -90,8 +90,8 @@ function create_empty_grid(width, height, wrap) {
   source.is_source = true;
 
   return {
-    width: width,
-    height: height,
+    view_width: width * kTileSize,
+    view_height: height * kTileSize,
     cells: Array.concat.apply(null, grid),
     source_cell: source,
   };
