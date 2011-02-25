@@ -10,9 +10,75 @@
 </head>
 
 <body>
-  <div id="status-panel">
-    <button id="btn-new" onclick="new_grid('sqr', 4, 4, false, 0.4)">New</button>
-  </div>
+  <form id="status-panel" onsubmit="do_new_game(this); return false">
+    <input type="submit" id="btn-new" value="New" />
+    <label>
+      Tiles:
+      <select name="shape" onchange="do_new_game(this.form)">
+        <option value="sqr">Square</option>
+        <option value="hex">Hexagonal</option>
+      </select>
+    </label>
+    <label>
+      Width:
+      <select name="width" onchange="do_new_game(this.form)">
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>8</option>
+        <option>9</option>
+        <option>10</option>
+        <option>11</option>
+        <option>12</option>
+        <option>13</option>
+        <option>14</option>
+        <option>15</option>
+        <option>16</option>
+        <option>17</option>
+        <option>18</option>
+        <option>19</option>
+        <option>20</option>
+      </select>
+    </label>
+    <label>
+      Height:
+      <select name="height" onchange="do_new_game(this.form)">
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>8</option>
+        <option>9</option>
+        <option>10</option>
+        <option>11</option>
+        <option>12</option>
+        <option>13</option>
+        <option>14</option>
+        <option>15</option>
+        <option>16</option>
+        <option>17</option>
+        <option>18</option>
+        <option>19</option>
+        <option>20</option>
+      </select>
+    </label>
+    <label>
+      Walls (hints):
+      <select name="walls" onchange="do_new_game(this.form)">
+        <option value="0">None</option>
+        <option value="0.25">Few</option>
+        <option value="0.5">Moderate</option>
+        <option value="0.75">Many</option>
+      </select>
+    </label>
+    <label>
+      <input name="wrap" type="checkbox" onchange="do_new_game(this.form)" />
+      Wrap
+    </label>
+  </form>
 
   <div id="wrapper">
     <svg id="gameview" xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
@@ -39,14 +105,6 @@
   <div id="youwin" style="display: none">
     <p>You Win!</p>
   </div>
-
-  <form id="settings" onsubmit="do_change_settings(this); return false" style="display: none">
-    <button id="settingsclose" onclick="do_close_settings();">×</button>
-    <p>Width: <input name="width" /></p>
-    <p>Height: <input name="height" /></p>
-    <p><input name="checkbox" /> Wrap grid</p>
-    <input type="submit" value="Save" />
-  </form>
 </body>
 
 </html>

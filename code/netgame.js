@@ -10,7 +10,14 @@ window.onload = function() {
     el.removeAttribute('id'); // because we clone them
   }
   gridview = document.getElementById('sqrgrid');
-  new_grid('hex', 9, 9, true, 0.1);
+  new_grid('hex', 9, 9, true, 0.9);
+}
+
+
+function do_new_game(form) {
+  function v(sel) { return sel.options[sel.selectedIndex].value; }
+  new_grid(v(form['shape']), +v(form['width']), +v(form['height']), form['wrap'].checked, +v(form['walls']));
+  return false;
 }
 
 
