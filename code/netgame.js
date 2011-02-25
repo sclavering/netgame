@@ -10,7 +10,7 @@ window.onload = function() {
     el.removeAttribute('id'); // because we clone them
   }
   gridview = document.getElementById('sqrgrid');
-  new_grid(9, 9);
+  new_grid(9, 9, true, 0.1);
 }
 
 
@@ -53,11 +53,11 @@ const view = {
 };
 
 
-function new_grid(width, height) {
-  const grid = create_empty_grid(width, height, false);
+function new_grid(width, height, wrap, wall_freq) {
+  const grid = create_empty_grid(width, height, wrap);
   fill_grid(grid);
   grid.cells = Array.concat.apply(null, grid);
-  add_walls(grid, 0.1);
+  add_walls(grid, wall_freq);
   const max_rotation = grid.cells[0].adj.length;
   for each(var c in grid.cells) c._rotation = random_int(max_rotation);
   view.show(grid);
@@ -69,26 +69,24 @@ function create_empty_grid(width, height, wrap) {
   grid.width = width;
   grid.height = height;
 
-  const xmax = width - 1;
-  const ymax = height - 1;
+  function link(a, dir, b) {
+    a.adj[dir] = b;
+    b.adj[invert_direction(dir)] = a;
+  }
 
   for(var x = 0; x != width; ++x) {
     grid[x] = new Array(height);
     for(var y = 0; y != height; ++y) grid[x][y] = new Cell(x, y, x * width + y);
   }
-
-  for(x = 0; x != width; ++x) {
-    for(y = 0; y != width; ++y) {
-      var cell = grid[x][y];
-      if(x != xmax) cell.adj[1] = grid[x + 1][y];
-      else if(wrap) cell.adj[1] = grid[0][y];
-      if(y != 0) cell.adj[0] = grid[x][y - 1];
-      else if(wrap) cell.adj[0] = grid[x][ymax];
-      if(y != ymax) cell.adj[2] = grid[x][y + 1];
-      else if(wrap) cell.adj[2] = grid[x][0];
-      if(x != 0) cell.adj[3] = grid[x - 1][y];
-      else if(wrap) cell.adj[3] = grid[xmax][y];
+  for(var x = 0; x != width; ++x) {
+    for(var y = 0; y != height; ++y) {
+      if(y) link(grid[x][y], 0, grid[x][y - 1]);
+      if(x) link(grid[x][y], 3, grid[x - 1][y]);
     }
+  }
+  if(wrap) {
+    for(var x = 0; x != width; ++x) link(grid[x][0], 0, grid[x][height - 1]);
+    for(var y = 0; y != height; ++y) link(grid[0][y], 3, grid[width - 1][y]);
   }
 
   return grid;
