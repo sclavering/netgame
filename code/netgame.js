@@ -145,9 +145,10 @@ const create_grid_functions = {
       b.adj[a.invert_direction(dir)] = a;
     }
 
+    var id = 0;
     for(var x = 0; x != width; ++x) {
       cells[x] = new Array(height);
-      for(var y = 0; y != height; ++y) cells[x][y] = new Cell(x, y, x * width + y);
+      for(var y = 0; y != height; ++y) cells[x][y] = new Sqr(id++, x, y);
     }
     for(var x = 0; x != width; ++x) {
       for(var y = 0; y != height; ++y) {
@@ -173,7 +174,7 @@ const create_grid_functions = {
 };
 
 
-function Cell(x, y, id) {
+function Sqr(id, x, y) {
   this.id = id; // numeric nonce
   this.x = x;
   this.y = y;
@@ -183,7 +184,7 @@ function Cell(x, y, id) {
   // 1 or 0, as bools, indicating if this block is linked up, right, down, left, when in its proper orientation.  (i.e. current rotation is not reflected here)
   this.links = [0, 0, 0, 0];
 }
-Cell.prototype = {
+Sqr.prototype = {
   is_source: false,
 
   _rotation: 0, // [0 .. 4)
