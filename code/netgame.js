@@ -148,7 +148,7 @@ const create_grid_functions = {
     var id = 0;
     for(var x = 0; x != width; ++x) {
       cells[x] = new Array(height);
-      for(var y = 0; y != height; ++y) cells[x][y] = new Sqr(id++, x, y);
+      for(var y = 0; y != height; ++y) cells[x][y] = Sqr.make(id++, x, y);
     }
     for(var x = 0; x != width; ++x) {
       for(var y = 0; y != height; ++y) {
@@ -174,17 +174,18 @@ const create_grid_functions = {
 };
 
 
-function Sqr(id, x, y) {
-  this.id = id; // numeric nonce
-  this.x = x;
-  this.y = y;
+const Sqr = {
+  make: function(id, x, y) {
+    return {
+      __proto__: Sqr,
+      id: id,
+      _x: x,
+      _y: y,
+      adj: [null, null, null, null], // top right bottom left
+      links: [0, 0, 0, 0], // same order.  booleans as ints.  does *not* include the current rotation
+    };
+  },
 
-  // up, right, down, left
-  this.adj = [null, null, null, null];
-  // 1 or 0, as bools, indicating if this block is linked up, right, down, left, when in its proper orientation.  (i.e. current rotation is not reflected here)
-  this.links = [0, 0, 0, 0];
-}
-Sqr.prototype = {
   is_source: false,
 
   _rotation: 0, // [0 .. 4)
@@ -214,12 +215,12 @@ Sqr.prototype = {
   },
 
   draw_bg: function() {
-    var tv = add_transformed_clone(gridview, 'sqr-tile', 'translate(' + (this.x * kTileSize) + ', ' + (this.y * kTileSize) + ')');
+    var tv = add_transformed_clone(gridview, 'sqr-tile', 'translate(' + (this._x * kTileSize) + ', ' + (this._y * kTileSize) + ')');
     tv.__cell = this;
   },
 
   draw_fg: function() {
-    const cv = this._view = add_transformed_clone(gridview, 'gg', 'translate(' + (this.x * kTileSize + kTileHalf) + ',' + (this.y * kTileSize + kTileHalf) + ')');
+    const cv = this._view = add_transformed_clone(gridview, 'gg', 'translate(' + (this._x * kTileSize + kTileHalf) + ',' + (this._y * kTileSize + kTileHalf) + ')');
     const inner = cv.firstChild, ls = this.links;
     if(ls[0]) add_transformed_clone(inner, 'sqr-line', '');
     if(ls[1]) add_transformed_clone(inner, 'sqr-line', 'rotate(90)');
@@ -240,7 +241,7 @@ Sqr.prototype = {
   },
 
   draw_walls: function() {
-    const x = this.x, y = this.y, adj = this.adj;
+    const x = this._x, y = this._y, adj = this.adj;
     if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
     if(!adj[1]) this._draw_wall('sqr-wall-v', x + 1, y);
     if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
