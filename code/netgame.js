@@ -331,10 +331,10 @@ const Hex = {
   _rotation: 0, // [0 .. 6)
 
   add_walls: function(wall_probability) {
-    return;
     const links = this.links, adj = this.adj;
-    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[2] = null, adj[0] = null;
-    if(!links[3] && adj[3] && Math.random() < wall_probability) adj[3].adj[1] = null, adj[3] = null;
+    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[3] = null, adj[0] = null;
+    if(!links[1] && adj[1] && Math.random() < wall_probability) adj[1].adj[4] = null, adj[1] = null;
+    if(!links[2] && adj[2] && Math.random() < wall_probability) adj[2].adj[5] = null, adj[2] = null;
   },
 
   invert_direction: function(dir) {
@@ -390,15 +390,17 @@ const Hex = {
   },
 
   draw_walls: function() {
-    return;
+    // Avoiding drawing walls already drawn by another tile is rather complicated, so don't bother worrying
     const x = this._x, y = this._y, adj = this.adj;
-    if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
-    if(!adj[1]) this._draw_wall('sqr-wall-v', x + 1, y);
-    if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
-    if(!adj[2]) this._draw_wall('sqr-wall-h', x, y + 1);
+    if(!adj[0]) this._draw_wall(0);
+    if(!adj[1]) this._draw_wall(60);
+    if(!adj[2]) this._draw_wall(120);
+    if(!adj[3]) this._draw_wall(180);
+    if(!adj[4]) this._draw_wall(240);
+    if(!adj[5]) this._draw_wall(300);
   },
 
-  _draw_wall: function(wall, x, y) {
-    add_transformed_clone(gridview, wall, 'translate(' + (x * sqr_size) + ', ' + (y * sqr_size) + ')');
+  _draw_wall: function(angle) {
+    add_transformed_clone(gridview, 'hex-wall', this._center_translate() + ' rotate(' + angle + ')');
   },
 };
