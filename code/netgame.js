@@ -193,8 +193,10 @@ const create_grid_functions = {
   },
 
   hex: function(width, height, wrap) {
-    wrap = false;
-    // xxx need to force even width and height if wrap = true
+    if(wrap) {
+      if(height % 2) ++height;
+      if(width % 2) ++width;
+    }
 
     const cells = new Array(width);
 
@@ -219,12 +221,14 @@ const create_grid_functions = {
         connect_to(cell, 2, x + 1, slope_up_y);
       }
     }
-if(0) {
     if(wrap) {
-      for(var x = 0; x != width; ++x) connect_adj(cells[x][0], 0, cells[x][height - 1]);
-      for(var y = 0; y != height; ++y) connect_adj(cells[0][y], 3, cells[width - 1][y]);
+      for(var x = 0; x != width; ++x) connect_to(cells[x][0], 1, x, height - 1);
+      for(var y = 0; y != height; ++y) {
+        connect_to(cells[0][y], 0, width - 1, y);
+        connect_to(cells[0][y], 5, width - 1, y + 1);
+      }
+      connect_to(cells[0][height - 1], 5, width - 1, 0);
     }
-}
 
     const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
     source.is_source = true;
