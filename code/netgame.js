@@ -198,49 +198,49 @@ const create_grid_functions = {
       if(width % 2) ++width;
     }
 
-    const cells = new Array(width);
-
-    function connect_to(cell, dir, x, y) {
-      const other = (cells[x] && cells[x][y]) || null;
-      if(!other) return;
-      cell.adj[dir] = other;
-      other.adj[Hex.invert_direction(dir)] = cell;
-    }
-
+    const cell_grid = new Array(width);
     var id = 0;
     for(var x = 0; x != width; ++x) {
-      cells[x] = new Array(height);
-      for(var y = 0; y != height; ++y) cells[x][y] = Hex.make(id++, x, y);
+      cell_grid[x] = new Array(height);
+      for(var y = 0; y != height; ++y) cell_grid[x][y] = Hex.make(id++, x, y);
     }
     for(var x = 0; x != width; ++x) {
       for(var y = 0; y != height; ++y) {
-        var cell = cells[x][y];
-        connect_to(cell, 1, x, y - 1);
+        var cell = cell_grid[x][y];
+        connect_to(cell_grid, cell, 1, x, y - 1);
         var slope_up_y = x % 2 ? y - 1 : y;
-        connect_to(cell, 0, x - 1, slope_up_y);
-        connect_to(cell, 2, x + 1, slope_up_y);
+        connect_to(cell_grid, cell, 0, x - 1, slope_up_y);
+        connect_to(cell_grid, cell, 2, x + 1, slope_up_y);
       }
     }
     if(wrap) {
-      for(var x = 0; x != width; ++x) connect_to(cells[x][0], 1, x, height - 1);
+      for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 1, x, height - 1);
       for(var y = 0; y != height; ++y) {
-        connect_to(cells[0][y], 0, width - 1, y);
-        connect_to(cells[0][y], 5, width - 1, y + 1);
+        connect_to(cell_grid, cell_grid[0][y], 0, width - 1, y);
+        connect_to(cell_grid, cell_grid[0][y], 5, width - 1, y + 1);
       }
-      connect_to(cells[0][height - 1], 5, width - 1, 0);
+      connect_to(cell_grid, cell_grid[0][height - 1], 5, width - 1, 0);
     }
 
-    const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
+    const source = cell_grid[Math.floor(width / 2)][Math.floor(height / 2)];
     source.is_source = true;
 
     return {
       view_width: width * hex_hoffset + hex_overhang,
       view_height: height * hex_height + hex_half_height,
-      cells: Array.concat.apply(null, cells),
+      cells: Array.concat.apply(null, cell_grid),
       source_cell: source,
     };
   },
 };
+
+
+function connect_to(cell_grid, cell, dir, x, y) {
+  const other = (cell_grid[x] && cell_grid[x][y]) || null;
+  if(!other) return;
+  cell.adj[dir] = other;
+  other.adj[cell.invert_direction(dir)] = cell;
+}
 
 
 const Sqr = {
