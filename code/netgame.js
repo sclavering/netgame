@@ -159,12 +159,6 @@ function add_transformed_clone(parent, template_id, transform) {
 const create_grid_functions = {
   sqr: function(width, height, wrap) {
     const cells = new Array(width);
-
-    function connect_adj(a, dir, b) {
-      a.adj[dir] = b;
-      b.adj[Sqr.invert_direction(dir)] = a;
-    }
-
     var id = 0;
     for(var x = 0; x != width; ++x) {
       cells[x] = new Array(height);
@@ -172,13 +166,13 @@ const create_grid_functions = {
     }
     for(var x = 0; x != width; ++x) {
       for(var y = 0; y != height; ++y) {
-        if(y) connect_adj(cells[x][y], 0, cells[x][y - 1]);
-        if(x) connect_adj(cells[x][y], 3, cells[x - 1][y]);
+        connect_to(cells, cells[x][y], 0, x, y - 1);
+        connect_to(cells, cells[x][y], 3, x - 1, y);
       }
     }
     if(wrap) {
-      for(var x = 0; x != width; ++x) connect_adj(cells[x][0], 0, cells[x][height - 1]);
-      for(var y = 0; y != height; ++y) connect_adj(cells[0][y], 3, cells[width - 1][y]);
+      for(var x = 0; x != width; ++x) connect_to(cells, cells[x][0], 0, x, height - 1);
+      for(var y = 0; y != height; ++y) connect_to(cells, cells[0][y], 3, width - 1, y);
     }
 
     const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
