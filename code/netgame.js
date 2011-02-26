@@ -383,7 +383,10 @@ const Hex = {
     if(ls[4]) add_transformed_clone(inner, 'hex-spoke', 'rotate(180)');
     if(ls[5]) add_transformed_clone(inner, 'hex-spoke', 'rotate(240)');
     if(sum(ls) === 1) add_transformed_clone(inner, 'hex-node', '');
-    if(this.is_source) add_transformed_clone(inner, 'hex-core', '');
+    if(this.is_source) {
+      var core = add_transformed_clone(inner, 'hex-tile', 'scale(0.5)');
+      core.className.baseVal = 'core';
+    }
     gridview.appendChild(cv);
     this.redraw(); // to handle the initial random rotation
   },
