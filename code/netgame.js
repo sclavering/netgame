@@ -293,8 +293,8 @@ const Sqr = {
     if(ls[1]) add_transformed_clone(inner, 'sqr-line', 'rotate(90)');
     if(ls[2]) add_transformed_clone(inner, 'sqr-line', 'rotate(180)');
     if(ls[3]) add_transformed_clone(inner, 'sqr-line', 'rotate(270)');
-    if(sum(ls) === 1) add_transformed_clone(inner, 'sqr-node', '');
     if(this.is_source) add_transformed_clone(inner, 'sqr-core', '');
+    else if(sum(ls) === 1) add_transformed_clone(inner, 'sqr-node', '');
     gridview.appendChild(cv);
     this.redraw(); // to handle the initial random rotation
   },
@@ -384,11 +384,8 @@ const Hex = {
     if(ls[3]) add_transformed_clone(inner, 'hex-spoke', 'rotate(120)');
     if(ls[4]) add_transformed_clone(inner, 'hex-spoke', 'rotate(180)');
     if(ls[5]) add_transformed_clone(inner, 'hex-spoke', 'rotate(240)');
-    if(sum(ls) === 1) add_transformed_clone(inner, 'hex-node', '');
-    if(this.is_source) {
-      var core = add_transformed_clone(inner, 'hex-tile', 'scale(0.5)');
-      core.className.baseVal = 'core';
-    }
+    if(this.is_source) add_transformed_clone(inner, 'hex-tile', 'scale(0.5)').className.baseVal = 'core';
+    else if(sum(ls) === 1) add_transformed_clone(inner, 'hex-node', '');
     gridview.appendChild(cv);
     this.redraw(); // to handle the initial random rotation
   },
