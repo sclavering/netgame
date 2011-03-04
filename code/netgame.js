@@ -9,7 +9,7 @@ window.onload = function() {
     svg_templates[el.id] = el;
     el.removeAttribute('id'); // because we clone them
   }
-  gridview = document.getElementById('sqrgrid');
+  gridview = document.getElementById('gridview');
   new_grid('hex', 9, 9, true, 0.9);
 }
 
@@ -360,7 +360,6 @@ const Hex = {
 
   rotate_clockwise: function() {
     this._rotation = (this._rotation + 1) % 6;
-//     this._rotation = [1, 2, 3, 4, 5, 0][this._rotation];
   },
 
   draw_bg: function() {
@@ -400,7 +399,7 @@ const Hex = {
 
   draw_walls: function() {
     // Avoiding drawing walls already drawn by another tile is rather complicated, so don't bother worrying
-    const x = this._x, y = this._y, adj = this.adj;
+    const adj = this.adj;
     if(!adj[0]) this._draw_wall(0);
     if(!adj[1]) this._draw_wall(60);
     if(!adj[2]) this._draw_wall(120);
