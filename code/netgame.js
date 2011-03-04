@@ -30,6 +30,10 @@ const hex_half_width = 74;
 const hex_hoffset = 111; // width of left point and rectangular body together
 const hex_overhang = 37; // width of right point
 
+const tri_width = 40; // they point sideways, so this is from a point to the opposite side's centre
+const tri_half_width = 20;
+const tri_half_height = 23.09;
+const tri_spoke_length = 13.33; // x distance from base (left/right) to the true center
 
 const view = {
   _grid: null,
@@ -410,5 +414,135 @@ const Hex = {
 
   _draw_wall: function(angle) {
     add_transformed_clone(gridview, 'hex-wall', this._center_translate() + ' rotate(' + angle + ')');
+  },
+};
+
+
+create_grid_functions.tri = function(width, height, wrap) {
+  if(wrap) {
+    if(height % 2) ++height;
+    if(width % 2) ++width;
+  }
+
+  const cell_grid = new Array(width);
+  var id = 0;
+  for(var x = 0; x != width; ++x) {
+    cell_grid[x] = new Array(height);
+    for(var y = 0; y != height; ++y) cell_grid[x][y] = Tri.make(id++, x, y);
+  }
+
+  for(var x = 0; x != width; ++x) {
+    for(var y = 0; y != height; ++y) {
+      var cell = cell_grid[x][y];
+      connect_to(cell_grid, cell, 0, x, y - 1);
+      if(cell._points_leftward) connect_to(cell_grid, cell, 2, x + 1, y);
+    }
+  }
+
+/*
+  if(wrap) {
+    for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 1, x, height - 1);
+    for(var y = 0; y != height; ++y) {
+      connect_to(cell_grid, cell_grid[0][y], 0, width - 1, y);
+      connect_to(cell_grid, cell_grid[0][y], 5, width - 1, y + 1);
+    }
+    connect_to(cell_grid, cell_grid[0][height - 1], 5, width - 1, 0);
+  }
+*/
+
+  const source = cell_grid[Math.floor(width / 2)][Math.floor(height / 2)];
+  source.is_source = true;
+
+  return {
+    view_width: width * tri_width,
+    view_height: (height + 1) * tri_half_height,
+    cells: Array.concat.apply(null, cell_grid),
+    source_cell: source,
+  };
+};
+
+const Tri = {
+  // even column are the ones offset downward at the top of the grid
+  make: function(id, x, y) {
+    return {
+      __proto__: Tri,
+      id: id,
+      _x: x,
+      _y: y,
+      _points_leftward: !((x % 2) ^ (y % 2)),
+      // up, down, right/left (depending on orientation
+      adj: [null, null, null],
+      links: [0, 0, 0],
+    };
+  },
+
+  is_source: false,
+
+  _rotation: 0, // [0 .. 6)
+
+  add_walls: function(wall_probability) {
+    const links = this.links, adj = this.adj;
+    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[1] = null, adj[0] = null;
+    if(this._points_leftward && !links[2] && adj[2] && Math.random() < wall_probability) adj[2].adj[2] = null, adj[2] = null;
+  },
+
+  invert_direction: function(dir) {
+    // up and down swap.  right and left are at the same ix.
+    return [1, 0, 2][dir];
+  },
+
+  had_current_bidirectional_link: function(dir) {
+    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(Hex.invert_direction(dir));
+  },
+
+  has_current_link_to: function(dir) {
+    return !!this.links[(dir + 6 - this._rotation) % 6];
+  },
+
+  rotate_clockwise: function() {
+    this._rotation = (this._rotation + 1) % 3;
+  },
+
+  draw_bg: function() {
+    var tv = add_transformed_clone(gridview, 'tri-tile', this._center_translate() + (this._points_leftward ? '' : ' rotate(180)'));
+    tv.__cell = this;
+  },
+
+  _center_translate: function() {
+    if(this.__center_translate) return this.__center_translate;
+    const extra = this._points_leftward ? tri_width - tri_spoke_length : tri_spoke_length;
+    return this.__center_translate = 'translate(' + (this._x * tri_width + extra) + ',' + ((this._y + 1) * tri_half_height) + ')';
+  },
+
+  draw_fg: function() {
+    const cv = this._view = add_transformed_clone(gridview, 'gg', this._center_translate());
+    const inner = cv.firstChild, ls = this.links;
+    const trans = this._points_leftward ? '' : 'scale(-1, 1)';
+    if(ls[0]) add_transformed_clone(inner, 'tri-spoke', trans + 'rotate(-120)');
+    if(ls[1]) add_transformed_clone(inner, 'tri-spoke', trans + 'rotate(120)');
+    if(ls[2]) add_transformed_clone(inner, 'tri-spoke', trans);
+    if(this.is_source) add_transformed_clone(inner, 'tri-tile', 'scale(0.5)' + trans).className.baseVal = 'core';
+    else if(sum(ls) === 1) add_transformed_clone(inner, 'tri-node', '');
+    gridview.appendChild(cv);
+    this.redraw(); // to handle the initial random rotation
+  },
+
+  redraw: function(x, y) {
+    this._view.firstChild.setAttribute('transform', 'rotate(' + (this._rotation * 120) + ')');
+  },
+
+  show_powered: function(is_powered) {
+    this._view.className.baseVal = is_powered ? 'powered' : '';
+  },
+
+  draw_walls: function() {
+    const adj = this.adj;
+    if(!adj[0]) this._draw_wall(this._points_leftward ? -120 : -60);
+    if(!adj[1]) this._draw_wall(this._points_leftward ? 120 : 60);
+    if(!adj[2]) this._draw_wall(this._points_leftward ? 0 : 180);
+  },
+
+  _draw_wall: function(angle) {
+    add_transformed_clone(gridview, 'tri-wall', this._center_translate() + ' rotate(' + angle + ')');
   },
 };

@@ -17,6 +17,7 @@
       <select name="shape" onchange="do_new_game(this.form)">
         <option value="sqr">Square</option>
         <option value="hex">Hexagonal</option>
+        <option value="tri">Triangular</option>
       </select>
     </label>
     <label>
@@ -96,6 +97,11 @@
         <line id="hex-spoke" class="line" y2="-65"/>
         <circle id="hex-node" class="node" r="30"/>
         <line id="hex-wall" class="wall" x1="-74" x2="-37" y2="-65"/>
+
+        <path id="tri-tile" class="tile" d="M -26.67,0 L 13.33,-23.09 13.33,23.09 z"/>
+        <line id="tri-spoke" class="line" x2="13"/>
+        <circle id="tri-node" class="node" r="6.5"/>
+        <line id="tri-wall" class="wall" x1="13.33" x2="13.33" y1="-23.09" y2="23.09"/>
       </defs>
       <g id="sqrgrid"/>
     </svg>
