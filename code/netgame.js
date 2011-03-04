@@ -1,6 +1,8 @@
 var svg = null;
 var gridview = null;
 const svg_templates = {};
+const create_grid_functions = {};
+
 
 window.onload = function() {
   svg = document.getElementById('gameview');
@@ -160,79 +162,6 @@ function add_transformed_clone(parent, template_id, transform) {
 }
 
 
-const create_grid_functions = {
-  sqr: function(width, height, wrap) {
-    const cells = new Array(width);
-    var id = 0;
-    for(var x = 0; x != width; ++x) {
-      cells[x] = new Array(height);
-      for(var y = 0; y != height; ++y) cells[x][y] = Sqr.make(id++, x, y);
-    }
-    for(var x = 0; x != width; ++x) {
-      for(var y = 0; y != height; ++y) {
-        connect_to(cells, cells[x][y], 0, x, y - 1);
-        connect_to(cells, cells[x][y], 3, x - 1, y);
-      }
-    }
-    if(wrap) {
-      for(var x = 0; x != width; ++x) connect_to(cells, cells[x][0], 0, x, height - 1);
-      for(var y = 0; y != height; ++y) connect_to(cells, cells[0][y], 3, width - 1, y);
-    }
-
-    const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
-    source.is_source = true;
-
-    return {
-      view_width: width * sqr_size,
-      view_height: height * sqr_size,
-      cells: Array.concat.apply(null, cells),
-      source_cell: source,
-    };
-  },
-
-  hex: function(width, height, wrap) {
-    if(wrap) {
-      if(height % 2) ++height;
-      if(width % 2) ++width;
-    }
-
-    const cell_grid = new Array(width);
-    var id = 0;
-    for(var x = 0; x != width; ++x) {
-      cell_grid[x] = new Array(height);
-      for(var y = 0; y != height; ++y) cell_grid[x][y] = Hex.make(id++, x, y);
-    }
-    for(var x = 0; x != width; ++x) {
-      for(var y = 0; y != height; ++y) {
-        var cell = cell_grid[x][y];
-        connect_to(cell_grid, cell, 1, x, y - 1);
-        var slope_up_y = x % 2 ? y - 1 : y;
-        connect_to(cell_grid, cell, 0, x - 1, slope_up_y);
-        connect_to(cell_grid, cell, 2, x + 1, slope_up_y);
-      }
-    }
-    if(wrap) {
-      for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 1, x, height - 1);
-      for(var y = 0; y != height; ++y) {
-        connect_to(cell_grid, cell_grid[0][y], 0, width - 1, y);
-        connect_to(cell_grid, cell_grid[0][y], 5, width - 1, y + 1);
-      }
-      connect_to(cell_grid, cell_grid[0][height - 1], 5, width - 1, 0);
-    }
-
-    const source = cell_grid[Math.floor(width / 2)][Math.floor(height / 2)];
-    source.is_source = true;
-
-    return {
-      view_width: width * hex_hoffset + hex_overhang,
-      view_height: height * hex_height + hex_half_height,
-      cells: Array.concat.apply(null, cell_grid),
-      source_cell: source,
-    };
-  },
-};
-
-
 function connect_to(cell_grid, cell, dir, x, y) {
   const other = (cell_grid[x] && cell_grid[x][y]) || null;
   if(!other) return;
@@ -240,6 +169,35 @@ function connect_to(cell_grid, cell, dir, x, y) {
   other.adj[cell.invert_direction(dir)] = cell;
 }
 
+
+create_grid_functions.sqr = function(width, height, wrap) {
+  const cells = new Array(width);
+  var id = 0;
+  for(var x = 0; x != width; ++x) {
+    cells[x] = new Array(height);
+    for(var y = 0; y != height; ++y) cells[x][y] = Sqr.make(id++, x, y);
+  }
+  for(var x = 0; x != width; ++x) {
+    for(var y = 0; y != height; ++y) {
+      connect_to(cells, cells[x][y], 0, x, y - 1);
+      connect_to(cells, cells[x][y], 3, x - 1, y);
+    }
+  }
+  if(wrap) {
+    for(var x = 0; x != width; ++x) connect_to(cells, cells[x][0], 0, x, height - 1);
+    for(var y = 0; y != height; ++y) connect_to(cells, cells[0][y], 3, width - 1, y);
+  }
+
+  const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
+  source.is_source = true;
+
+  return {
+    view_width: width * sqr_size,
+    view_height: height * sqr_size,
+    cells: Array.concat.apply(null, cells),
+    source_cell: source,
+  };
+};
 
 const Sqr = {
   make: function(id, x, y) {
@@ -320,6 +278,47 @@ const Sqr = {
   },
 };
 
+
+create_grid_functions.hex = function(width, height, wrap) {
+  if(wrap) {
+    if(height % 2) ++height;
+    if(width % 2) ++width;
+  }
+
+  const cell_grid = new Array(width);
+  var id = 0;
+  for(var x = 0; x != width; ++x) {
+    cell_grid[x] = new Array(height);
+    for(var y = 0; y != height; ++y) cell_grid[x][y] = Hex.make(id++, x, y);
+  }
+  for(var x = 0; x != width; ++x) {
+    for(var y = 0; y != height; ++y) {
+      var cell = cell_grid[x][y];
+      connect_to(cell_grid, cell, 1, x, y - 1);
+      var slope_up_y = x % 2 ? y - 1 : y;
+      connect_to(cell_grid, cell, 0, x - 1, slope_up_y);
+      connect_to(cell_grid, cell, 2, x + 1, slope_up_y);
+    }
+  }
+  if(wrap) {
+    for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 1, x, height - 1);
+    for(var y = 0; y != height; ++y) {
+      connect_to(cell_grid, cell_grid[0][y], 0, width - 1, y);
+      connect_to(cell_grid, cell_grid[0][y], 5, width - 1, y + 1);
+    }
+    connect_to(cell_grid, cell_grid[0][height - 1], 5, width - 1, 0);
+  }
+
+  const source = cell_grid[Math.floor(width / 2)][Math.floor(height / 2)];
+  source.is_source = true;
+
+  return {
+    view_width: width * hex_hoffset + hex_overhang,
+    view_height: height * hex_height + hex_half_height,
+    cells: Array.concat.apply(null, cell_grid),
+    source_cell: source,
+  };
+};
 
 const Hex = {
   // even column are the ones offset downward at the top of the grid
