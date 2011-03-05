@@ -469,10 +469,9 @@ const Tri = {
   _rotation: 0, // [0 .. 3)
 
   add_walls: function(wall_probability) {
-    return;
     const links = this.links, adj = this.adj;
-    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[1] = null, adj[0] = null;
-    if(this._points_leftward && !links[2] && adj[2] && Math.random() < wall_probability) adj[2].adj[2] = null, adj[2] = null;
+    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[this.invert_direction(0)] = null, adj[0] = null;
+    if(this._points_leftward && !links[1] && adj[1] && Math.random() < wall_probability) adj[1].adj[2] = null, adj[1] = null;
   },
 
   invert_direction: function(dir) {
@@ -524,10 +523,10 @@ const Tri = {
   },
 
   draw_walls: function() {
-    const adj = this.adj;
-    if(!adj[0]) this._draw_wall(this._points_leftward ? -120 : -60);
-    if(!adj[1]) this._draw_wall(this._points_leftward ? 120 : 60);
-    if(!adj[2]) this._draw_wall(this._points_leftward ? 0 : 180);
+    const adj = this.adj, offset = this._points_leftward ? 0 : 60 ;
+    if(!adj[0]) this._draw_wall(-120 + offset);
+    if(!adj[1]) this._draw_wall(0 + offset);
+    if(!adj[2]) this._draw_wall(120 + offset);
   },
 
   _draw_wall: function(angle) {
