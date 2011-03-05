@@ -226,7 +226,7 @@ const Sqr = {
   },
 
   had_current_bidirectional_link: function(dir) {
-    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(Sqr.invert_direction(dir));
+    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(this.invert_direction(dir));
   },
 
   has_current_link_to: function(dir) {
@@ -350,7 +350,7 @@ const Hex = {
   },
 
   had_current_bidirectional_link: function(dir) {
-    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(Hex.invert_direction(dir));
+    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(this.invert_direction(dir));
   },
 
   has_current_link_to: function(dir) {
