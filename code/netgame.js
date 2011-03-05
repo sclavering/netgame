@@ -433,17 +433,10 @@ create_grid_functions.tri = function(width, height, wrap) {
       if(cell._points_leftward) connect_to(cell_grid, cell, 2, x + 1, y);
     }
   }
-
-/*
   if(wrap) {
-    for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 1, x, height - 1);
-    for(var y = 0; y != height; ++y) {
-      connect_to(cell_grid, cell_grid[0][y], 0, width - 1, y);
-      connect_to(cell_grid, cell_grid[0][y], 5, width - 1, y + 1);
-    }
-    connect_to(cell_grid, cell_grid[0][height - 1], 5, width - 1, 0);
+    for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 0, x, height - 1);
+    for(var y = 1; y < height; y += 2) connect_to(cell_grid, cell_grid[0][y], 2, width - 1, y);
   }
-*/
 
   const source = cell_grid[Math.floor(width / 2)][Math.floor(height / 2)];
   source.is_source = true;
