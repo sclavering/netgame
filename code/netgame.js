@@ -430,7 +430,7 @@ create_grid_functions.tri = function(width, height, wrap) {
     for(var y = 0; y != height; ++y) {
       var cell = cell_grid[x][y];
       connect_to(cell_grid, cell, 0, x, y - 1);
-      if(cell._points_leftward) connect_to(cell_grid, cell, 2, x + 1, y);
+      if(cell._points_leftward) connect_to(cell_grid, cell, 1, x + 1, y);
     }
   }
   if(wrap) {
@@ -458,7 +458,7 @@ const Tri = {
       _x: x,
       _y: y,
       _points_leftward: !((x % 2) ^ (y % 2)),
-      // up, down, right/left (depending on orientation
+      // [upleft, right, downleft], or [upright, downright, left] depending on orientation
       adj: [null, null, null],
       links: [0, 0, 0],
     };
@@ -466,25 +466,25 @@ const Tri = {
 
   is_source: false,
 
-  _rotation: 0, // [0 .. 6)
+  _rotation: 0, // [0 .. 3)
 
   add_walls: function(wall_probability) {
+    return;
     const links = this.links, adj = this.adj;
     if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[1] = null, adj[0] = null;
     if(this._points_leftward && !links[2] && adj[2] && Math.random() < wall_probability) adj[2].adj[2] = null, adj[2] = null;
   },
 
   invert_direction: function(dir) {
-    // up and down swap.  right and left are at the same ix.
-    return [1, 0, 2][dir];
+    return (this._points_leftward ? [1, 2, 0] : [2, 0, 1])[dir];
   },
 
   had_current_bidirectional_link: function(dir) {
-    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(Hex.invert_direction(dir));
+    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(this.invert_direction(dir));
   },
 
   has_current_link_to: function(dir) {
-    return !!this.links[(dir + 6 - this._rotation) % 6];
+    return !!this.links[(dir + 3 - this._rotation) % 3];
   },
 
   rotate_clockwise: function() {
@@ -505,10 +505,10 @@ const Tri = {
   draw_fg: function() {
     const cv = this._view = add_transformed_clone(gridview, 'gg', this._center_translate());
     const inner = cv.firstChild, ls = this.links;
-    const trans = this._points_leftward ? '' : 'scale(-1, 1)';
+    const trans = this._points_leftward ? '' : 'rotate(60)';
     if(ls[0]) add_transformed_clone(inner, 'tri-spoke', trans + 'rotate(-120)');
-    if(ls[1]) add_transformed_clone(inner, 'tri-spoke', trans + 'rotate(120)');
-    if(ls[2]) add_transformed_clone(inner, 'tri-spoke', trans);
+    if(ls[1]) add_transformed_clone(inner, 'tri-spoke', trans);
+    if(ls[2]) add_transformed_clone(inner, 'tri-spoke', trans + 'rotate(120)');
     if(this.is_source) add_transformed_clone(inner, 'tri-tile', 'scale(0.5)' + trans).className.baseVal = 'core';
     else if(sum(ls) === 1) add_transformed_clone(inner, 'tri-node', '');
     gridview.appendChild(cv);
