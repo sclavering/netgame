@@ -6,7 +6,7 @@ const create_grid_functions = {};
 
 window.onload = function() {
   svg = document.getElementById('gameview');
-  for each(var el in svg.getElementsByTagName('defs')[0].childNodes) {
+  for(let el of svg.getElementsByTagName('defs')[0].childNodes) {
     if(!el.id) continue;
     svg_templates[el.id] = el;
     el.removeAttribute('id'); // because we clone them
@@ -47,9 +47,9 @@ const view = {
     vb.width = grid.view_width;
     vb.height = grid.view_height;
     // Draw each group of things separately for z-ordering
-    for each(var c in grid.cells) c.draw_bg();
-    for each(var c in grid.cells) c.draw_fg();
-    for each(var c in grid.cells) c.draw_walls();
+    for(let c of grid.cells) c.draw_bg();
+    for(let c of grid.cells) c.draw_fg();
+    for(let c of grid.cells) c.draw_walls();
     this.update_poweredness();
     const self = this;
     gridview.onclick = function(ev) { self._onclick(ev) };
@@ -57,7 +57,7 @@ const view = {
 
   update_poweredness: function() {
     const powered_id_set = which_cells_are_powered(this._grid);
-    for each(var c in this._grid.cells) c.show_powered(c.id in powered_id_set);
+    for(let c of this._grid.cells) c.show_powered(c.id in powered_id_set);
   },
 
   _onclick: function(ev) {
@@ -75,9 +75,9 @@ function new_grid(shape, width, height, wrap, wall_probability) {
   const grid = create_grid_functions[shape](width, height, wrap);
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
-  if(wall_probability) for each(var c in grid.cells) c.add_walls(wall_probability);
+  if(wall_probability) for(let c of grid.cells) c.add_walls(wall_probability);
   const max_rotation = grid.cells[0].adj.length;
-  for each(var c in grid.cells) c._rotation = random_int(max_rotation);
+  for(let c of grid.cells) c._rotation = random_int(max_rotation);
   view.show(grid);
 }
 
@@ -89,7 +89,7 @@ function fill_grid(grid) {
 
   const fringe = [];
   const fringe_set = {};
-  for each(var fr in source.adj) {
+  for(let fr of source.adj) {
     if(!fr) continue;
     fringe.push(fr);
     fringe_set[fr.id] = true;
@@ -111,7 +111,7 @@ function fill_grid(grid) {
     cell.adj[random_dir].links[cell.invert_direction(random_dir)] = 1;
     linked[cell.id] = true;
 
-    for each(var adj in cell.adj) {
+    for(let adj of cell.adj) {
       if(!adj || linked[adj.id] || fringe_set[adj.id]) continue;
       fringe.push(adj);
       fringe_set[adj.id] = true;
