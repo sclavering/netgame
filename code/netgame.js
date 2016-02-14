@@ -37,17 +37,23 @@ const view = {
 
   show: function(grid) {
     this._grid = grid;
+    if(this._grid_bg) ReactDOM.unmountComponentAtNode(this._grid_bg);
     while(gridview.hasChildNodes()) gridview.removeChild(gridview.lastChild);
+    this._grid_bg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    gridview.appendChild(this._grid_bg);
     const vb = svg.viewBox.baseVal;
     vb.width = grid.view_width;
     vb.height = grid.view_height;
     // Draw each group of things separately for z-ordering
-    for(let c of grid.cells) c.draw_bg();
+    const bg_element = React.createElement(GameBackground, { grid: grid, oncellclick: cell => this._onclick(cell) });
+    ReactDOM.render(bg_element, this._grid_bg);
     for(let c of grid.cells) c.draw_fg();
     for(let c of grid.cells) c.draw_walls();
     this.update_poweredness();
     const self = this;
-    gridview.onclick = function(ev) { self._onclick(ev) };
+    gridview.onclick = ev => {
+      if(ev.target.__cell) this._onclick(ev.target.__cell);
+    };
   },
 
   update_poweredness: function() {
@@ -55,10 +61,7 @@ const view = {
     for(let c of this._grid.cells) c.show_powered(c.id in powered_id_set);
   },
 
-  _onclick: function(ev) {
-    const g = ev.target;
-    if(!g.__cell) return;
-    const cell = g.__cell;
+  _onclick: function(cell) {
     cell.rotate_clockwise();
     cell.redraw();
     this.update_poweredness();
@@ -191,6 +194,7 @@ create_grid_functions.sqr = function(width, height, wrap) {
     view_height: height * sqr_size,
     cells: Array.concat.apply(null, cells),
     source_cell: source,
+    bg_component: SquareBackground,
   };
 };
 
@@ -232,11 +236,6 @@ const Sqr = {
 
   rotate_clockwise: function() {
     this._rotation = [1, 2, 3, 0][this._rotation];
-  },
-
-  draw_bg: function() {
-    var tv = add_transformed_clone(gridview, 'sqr-tile', 'translate(' + (this._x * sqr_size) + ', ' + (this._y * sqr_size) + ')');
-    tv.__cell = this;
   },
 
   draw_fg: function() {
@@ -312,6 +311,7 @@ create_grid_functions.hex = function(width, height, wrap) {
     view_height: height * hex_height + hex_half_height,
     cells: Array.concat.apply(null, cell_grid),
     source_cell: source,
+    bg_component: HexBackground,
   };
 };
 
@@ -354,11 +354,6 @@ const Hex = {
 
   rotate_clockwise: function() {
     this._rotation = (this._rotation + 1) % 6;
-  },
-
-  draw_bg: function() {
-    var tv = add_transformed_clone(gridview, 'hex-tile', this._center_translate());
-    tv.__cell = this;
   },
 
   _center_translate: function() {
