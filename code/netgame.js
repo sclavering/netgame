@@ -12,7 +12,7 @@ window.onload = function() {
     el.removeAttribute('id'); // because we clone them
   }
   gridview = document.getElementById('gridview');
-  new_grid('hex', 9, 9, true, 0.9);
+  new_grid('hex', 9, 9, true, 0.6);
 }
 
 
@@ -38,8 +38,10 @@ const view = {
   show: function(grid) {
     this._grid = grid;
     if(this._grid_bg) ReactDOM.unmountComponentAtNode(this._grid_bg);
+    if(this._grid_walls) ReactDOM.unmountComponentAtNode(this._grid_walls);
     while(gridview.hasChildNodes()) gridview.removeChild(gridview.lastChild);
     this._grid_bg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    this._grid_walls = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gridview.appendChild(this._grid_bg);
     const vb = svg.viewBox.baseVal;
     vb.width = grid.view_width;
@@ -48,7 +50,9 @@ const view = {
     const bg_element = React.createElement(GameBackground, { grid: grid, oncellclick: cell => this._onclick(cell) });
     ReactDOM.render(bg_element, this._grid_bg);
     for(let c of grid.cells) c.draw_fg();
-    for(let c of grid.cells) c.draw_walls();
+    gridview.appendChild(this._grid_walls);
+    const walls_element = React.createElement(GameWalls, { grid: grid });
+    ReactDOM.render(walls_element, this._grid_walls);
     this.update_poweredness();
     const self = this;
     gridview.onclick = ev => {
@@ -195,6 +199,7 @@ create_grid_functions.sqr = function(width, height, wrap) {
     cells: Array.concat.apply(null, cells),
     source_cell: source,
     bg_component: SquareBackground,
+    walls_component: SquareWalls,
   };
 };
 
@@ -258,18 +263,6 @@ const Sqr = {
   show_powered: function(is_powered) {
     this._view.className.baseVal = is_powered ? 'powered' : '';
   },
-
-  draw_walls: function() {
-    const x = this._x, y = this._y, adj = this.adj;
-    if(!x && !adj[3]) this._draw_wall('sqr-wall-v', x, y);
-    if(!adj[1]) this._draw_wall('sqr-wall-v', x + 1, y);
-    if(!y && !adj[0]) this._draw_wall('sqr-wall-h', x, y);
-    if(!adj[2]) this._draw_wall('sqr-wall-h', x, y + 1);
-  },
-
-  _draw_wall: function(wall, x, y) {
-    add_transformed_clone(gridview, wall, 'translate(' + (x * sqr_size) + ', ' + (y * sqr_size) + ')');
-  },
 };
 
 
@@ -312,6 +305,7 @@ create_grid_functions.hex = function(width, height, wrap) {
     cells: Array.concat.apply(null, cell_grid),
     source_cell: source,
     bg_component: HexBackground,
+    walls_component: HexWalls,
   };
 };
 
@@ -384,20 +378,5 @@ const Hex = {
 
   show_powered: function(is_powered) {
     this._view.className.baseVal = is_powered ? 'powered' : '';
-  },
-
-  draw_walls: function() {
-    // Avoiding drawing walls already drawn by another tile is rather complicated, so don't bother worrying
-    const adj = this.adj;
-    if(!adj[0]) this._draw_wall(0);
-    if(!adj[1]) this._draw_wall(60);
-    if(!adj[2]) this._draw_wall(120);
-    if(!adj[3]) this._draw_wall(180);
-    if(!adj[4]) this._draw_wall(240);
-    if(!adj[5]) this._draw_wall(300);
-  },
-
-  _draw_wall: function(angle) {
-    add_transformed_clone(gridview, 'hex-wall', this._center_translate() + ' rotate(' + angle + ')');
   },
 };
