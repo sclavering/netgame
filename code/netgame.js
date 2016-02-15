@@ -65,9 +65,9 @@ const view = {
     for(let c of this._grid.cells) c.show_powered(c.id in powered_id_set);
   },
 
-  _onclick: function(cell) {
-    cell.rotate_clockwise();
-    cell.redraw();
+  _onclick: function(tile) {
+    Grid.rotate_clockwise(tile);
+    tile.redraw();
     this.update_poweredness();
   },
 };
@@ -77,7 +77,7 @@ function new_grid(shape, width, height, wrap, wall_probability) {
   const grid = create_grid_functions[shape](width, height, wrap);
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
-  if(wall_probability) for(let c of grid.cells) c.add_walls(wall_probability);
+  if(wall_probability) for(let c of grid.cells) Grid.add_walls(c, wall_probability);
   const max_rotation = grid.cells[0].adj.length;
   for(let c of grid.cells) c._rotation = random_int(max_rotation);
   view.show(grid);
@@ -110,7 +110,7 @@ function fill_grid(grid) {
 
     var random_dir = linked_adj_ixs[random_int(linked_adj_ixs.length)];
     cell.links[random_dir] = 1;
-    cell.adj[random_dir].links[cell.invert_direction(random_dir)] = 1;
+    cell.adj[random_dir].links[Grid.invert_direction(cell, random_dir)] = 1;
     linked[cell.id] = true;
 
     for(let adj of cell.adj) {
@@ -133,7 +133,7 @@ function which_cells_are_powered(grid) {
     powered[cell.id] = true;
     for(var dir = 0; dir !== len; ++dir) {
       var adj = adjs[dir];
-      if(!adj || !cell.had_current_bidirectional_link(dir)) continue;
+      if(!adj || !Grid.has_current_bidirectional_link(cell, dir)) continue;
       if(powered[adj.id]) continue;
       queue.push(adj);
     }
@@ -168,8 +168,44 @@ function connect_to(cell_grid, cell, dir, x, y) {
   const other = (cell_grid[x] && cell_grid[x][y]) || null;
   if(!other) return;
   cell.adj[dir] = other;
-  other.adj[cell.invert_direction(dir)] = cell;
+  other.adj[Grid.invert_direction(cell, dir)] = cell;
 }
+
+
+const Grid = {
+  has_current_bidirectional_link: function(tile, dir) {
+    return this.has_current_link_to(tile, dir) && this.has_current_link_to(tile.adj[dir], Grid.invert_direction(tile, dir));
+  },
+
+  has_current_link_to: function(tile, dir) {
+    return !!tile.links[this._clamp(tile, dir - tile._rotation)];
+  },
+
+  rotate_clockwise: function(tile) {
+    tile._rotation = this._clamp(tile, tile._rotation + 1);
+  },
+
+  add_walls: function(tile, wall_probability) {
+    const max = tile.num_sides;
+    const links = tile.links, adj = tile.adj;
+    for(let i = 0; i !== max; ++i) {
+      if(tile.links[i] || !tile.adj[i]) continue;
+      if(Math.random() > wall_probability) continue;
+      tile.adj[i].adj[this.invert_direction(tile, i)] = null;
+      tile.adj[i] = null;
+    }
+  },
+
+  _clamp: function(tile, val) {
+    const modulo = tile.num_sides;
+    return (val + modulo) % modulo;
+  },
+
+  invert_direction: function(tile, dir) {
+    const modulo = tile.num_sides;
+    return (dir + modulo / 2) % modulo;
+  },
+};
 
 
 create_grid_functions.sqr = function(width, height, wrap) {
@@ -214,31 +250,8 @@ const Sqr = {
       _rotation: 0, // [0 .. 4)
       adj: [null, null, null, null], // top right bottom left
       links: [0, 0, 0, 0], // same order.  booleans as ints.  does *not* include the current rotation
+      num_sides: 4,
     };
-  },
-
-  add_walls: function(wall_probability) {
-    const links = this.links, adj = this.adj;
-    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[2] = null, adj[0] = null;
-    if(!links[3] && adj[3] && Math.random() < wall_probability) adj[3].adj[1] = null, adj[3] = null;
-  },
-
-  invert_direction: function(dir) {
-    return [2, 3, 0, 1][dir];
-  },
-
-  had_current_bidirectional_link: function(dir) {
-    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(this.invert_direction(dir));
-  },
-
-  has_current_link_to: function(dir) {
-    dir -= this._rotation;
-    if(dir < 0) dir += 4;
-    return !!this.links[dir];
-  },
-
-  rotate_clockwise: function() {
-    this._rotation = [1, 2, 3, 0][this._rotation];
   },
 
   draw_fg: function() {
@@ -320,30 +333,8 @@ const Hex = {
       // upleft up upright downright down downleft
       adj: [null, null, null, null, null, null],
       links: [0, 0, 0, 0, 0, 0],
+      num_sides: 6,
     };
-  },
-
-  add_walls: function(wall_probability) {
-    const links = this.links, adj = this.adj;
-    if(!links[0] && adj[0] && Math.random() < wall_probability) adj[0].adj[3] = null, adj[0] = null;
-    if(!links[1] && adj[1] && Math.random() < wall_probability) adj[1].adj[4] = null, adj[1] = null;
-    if(!links[2] && adj[2] && Math.random() < wall_probability) adj[2].adj[5] = null, adj[2] = null;
-  },
-
-  invert_direction: function(dir) {
-    return [3, 4, 5, 0, 1, 2][dir];
-  },
-
-  had_current_bidirectional_link: function(dir) {
-    return this.has_current_link_to(dir) && this.adj[dir].has_current_link_to(this.invert_direction(dir));
-  },
-
-  has_current_link_to: function(dir) {
-    return !!this.links[(dir + 6 - this._rotation) % 6];
-  },
-
-  rotate_clockwise: function() {
-    this._rotation = (this._rotation + 1) % 6;
   },
 
   _center_translate: function() {
