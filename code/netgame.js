@@ -78,8 +78,7 @@ function new_grid(shape, width, height, wrap, wall_probability) {
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
   if(wall_probability) for(let c of grid.cells) Grid.add_walls(c, wall_probability);
-  const max_rotation = grid.cells[0].adj.length;
-  for(let c of grid.cells) c._rotation = random_int(max_rotation);
+  for(let c of grid.cells) c.state.rotation = random_int(c.num_sides);
   view.show(grid);
 }
 
@@ -178,11 +177,12 @@ const Grid = {
   },
 
   has_current_link_to: function(tile, dir) {
-    return !!tile.links[this._clamp(tile, dir - tile._rotation)];
+    return !!tile.links[this._clamp(tile, dir - tile.state.rotation)];
   },
 
   rotate_clockwise: function(tile) {
-    tile._rotation = this._clamp(tile, tile._rotation + 1);
+    const new_rotation = this._clamp(tile, tile.state.rotation + 1);
+    tile.state = Object.assign({}, tile.state, { rotation: new_rotation });
   },
 
   add_walls: function(tile, wall_probability) {
@@ -247,10 +247,12 @@ const Sqr = {
       _x: x,
       _y: y,
       is_source: false,
-      _rotation: 0, // [0 .. 4)
       adj: [null, null, null, null], // top right bottom left
       links: [0, 0, 0, 0], // same order.  booleans as ints.  does *not* include the current rotation
       num_sides: 4,
+      state: {
+        rotation: 0,
+      },
     };
   },
 
@@ -268,7 +270,7 @@ const Sqr = {
   },
 
   redraw: function(x, y) {
-    this._view.firstChild.setAttribute('transform', 'rotate(' + (this._rotation * 90) + ')');
+    this._view.firstChild.setAttribute('transform', 'rotate(' + (this.state.rotation * 90) + ')');
   },
 
   show_powered: function(is_powered) {
@@ -329,11 +331,13 @@ const Hex = {
       _x: x,
       _y: y,
       is_source: false,
-      _rotation: 0, // [0 .. 6)
       // upleft up upright downright down downleft
       adj: [null, null, null, null, null, null],
       links: [0, 0, 0, 0, 0, 0],
       num_sides: 6,
+      state: {
+        rotation: 0,
+      },
     };
   },
 
@@ -360,7 +364,7 @@ const Hex = {
   },
 
   redraw: function(x, y) {
-    this._view.firstChild.setAttribute('transform', 'rotate(' + (this._rotation * 60) + ')');
+    this._view.firstChild.setAttribute('transform', 'rotate(' + (this.state.rotation * 60) + ')');
   },
 
   show_powered: function(is_powered) {
