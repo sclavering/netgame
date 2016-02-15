@@ -210,14 +210,12 @@ const Sqr = {
       id: id,
       _x: x,
       _y: y,
+      is_source: false,
+      _rotation: 0, // [0 .. 4)
       adj: [null, null, null, null], // top right bottom left
       links: [0, 0, 0, 0], // same order.  booleans as ints.  does *not* include the current rotation
     };
   },
-
-  is_source: false,
-
-  _rotation: 0, // [0 .. 4)
 
   add_walls: function(wall_probability) {
     const links = this.links, adj = this.adj;
@@ -317,15 +315,13 @@ const Hex = {
       id: id,
       _x: x,
       _y: y,
+      is_source: false,
+      _rotation: 0, // [0 .. 6)
       // upleft up upright downright down downleft
       adj: [null, null, null, null, null, null],
       links: [0, 0, 0, 0, 0, 0],
     };
   },
-
-  is_source: false,
-
-  _rotation: 0, // [0 .. 6)
 
   add_walls: function(wall_probability) {
     const links = this.links, adj = this.adj;
