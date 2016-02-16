@@ -54,11 +54,11 @@ function GameWalls(props) {
 
 
 function SquareBackground(props) {
-    return <rect className="tile" width="50" height="50" x={ props.tile._x * sqr_size } y={ props.tile._y * sqr_size } onClick={ props.onClick }/>;
+    return <rect className="tile" width="50" height="50" x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick }/>;
 };
 
 function SquareWalls(props) {
-    const x = props.tile._x, y = props.tile._y, adj = props.tile.adj;
+    const x = props.tile.x, y = props.tile.y, adj = props.tile.adj;
     return <g>
         { !x && !adj[3] ? <SquareWallVertical x={ x } y={ y }/> : null }
         { !adj[1] ? <SquareWallVertical x={ x + 1 } y={ y }/> : null }
@@ -84,7 +84,7 @@ const SquareTile = React.createClass({
     },
     render: function() {
         const { tile, orientation, is_powered } = this.props;
-        return <g transform={ "translate(" + (tile._x * sqr_size + sqr_half) + "," + (tile._y * sqr_size + sqr_half) + ")" } className={ is_powered ? "powered" : null }>
+        return <g transform={ "translate(" + (tile.x * sqr_size + sqr_half) + "," + (tile.y * sqr_size + sqr_half) + ")" } className={ is_powered ? "powered" : null }>
             <g transform={ "rotate(" + (orientation * 90) + ")" }>
                 <SquareTileInner tile={ tile }/>;
             </g>
@@ -174,7 +174,7 @@ function HexLine(props) {
 };
 
 function hex_center_translate(tile) {
-    const x = tile._x * hex_hoffset + hex_half_width;
-    const y = tile._y * hex_height + hex_half_height + (tile._x % 2 ? 0 : hex_half_height);
+    const x = tile.x * hex_hoffset + hex_half_width;
+    const y = tile.y * hex_height + hex_half_height + (tile.x % 2 ? 0 : hex_half_height);
     return "translate(" + x + "," + y + ")";
 };

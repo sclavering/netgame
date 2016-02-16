@@ -125,6 +125,20 @@ const Grid = {
     return !!tile.links[this._clamp(tile, dir - orientations[tile.id])];
   },
 
+  new_tile: function(num_sides, id, x, y) {
+    return {
+      id: id,
+      x: x,
+      y: y,
+      is_source: false,
+      num_sides: num_sides,
+      // Other tile objects, indexed by shape-specific directions.
+      adj: Array(num_sides).fill(null),
+      // Does the tile, when in its correct orientation, have links to the tiles at the corresponding indexes of .adj
+      links: Array(num_sides).fill(0),
+    };
+  },
+
   add_walls: function(tile, wall_probability) {
     const max = tile.num_sides;
     const links = tile.links, adj = tile.adj;
@@ -148,12 +162,13 @@ const Grid = {
 };
 
 
+// Tile directions are: 0:top 1:right 2:bottom 3:left
 create_grid_functions.sqr = function(width, height, wrap) {
   const tiles = new Array(width);
   var id = 0;
   for(var x = 0; x != width; ++x) {
     tiles[x] = new Array(height);
-    for(var y = 0; y != height; ++y) tiles[x][y] = Sqr.make(id++, x, y);
+    for(var y = 0; y != height; ++y) tiles[x][y] = Grid.new_tile(4, id++, x, y);
   }
   for(var x = 0; x != width; ++x) {
     for(var y = 0; y != height; ++y) {
@@ -180,22 +195,8 @@ create_grid_functions.sqr = function(width, height, wrap) {
   };
 };
 
-const Sqr = {
-  make: function(id, x, y) {
-    return {
-      __proto__: Sqr,
-      id: id,
-      _x: x,
-      _y: y,
-      is_source: false,
-      adj: [null, null, null, null], // top right bottom left
-      links: [0, 0, 0, 0], // Same order.  Booleans as ints.  Does *not* consider the current orientation.
-      num_sides: 4,
-    };
-  },
-};
 
-
+// Tile directions are 0:upleft 1:up 2:upright 3:downright 4:down 5:downleft
 create_grid_functions.hex = function(width, height, wrap) {
   if(wrap) {
     if(height % 2) ++height;
@@ -206,7 +207,7 @@ create_grid_functions.hex = function(width, height, wrap) {
   var id = 0;
   for(var x = 0; x != width; ++x) {
     tile_grid[x] = new Array(height);
-    for(var y = 0; y != height; ++y) tile_grid[x][y] = Hex.make(id++, x, y);
+    for(var y = 0; y != height; ++y) tile_grid[x][y] = Grid.new_tile(6, id++, x, y);
   }
   for(var x = 0; x != width; ++x) {
     for(var y = 0; y != height; ++y) {
@@ -238,21 +239,4 @@ create_grid_functions.hex = function(width, height, wrap) {
     tile_component: HexTile,
     walls_component: HexWalls,
   };
-};
-
-const Hex = {
-  // even column are the ones offset downward at the top of the grid
-  make: function(id, x, y) {
-    return {
-      __proto__: Hex,
-      id: id,
-      _x: x,
-      _y: y,
-      is_source: false,
-      // upleft up upright downright down downleft
-      adj: [null, null, null, null, null, null],
-      links: [0, 0, 0, 0, 0, 0],
-      num_sides: 6,
-    };
-  },
 };
