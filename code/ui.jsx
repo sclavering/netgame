@@ -10,6 +10,8 @@ const hex_half_width = 74;
 const hex_hoffset = 111; // width of left point and rectangular body together
 const hex_overhang = 37; // width of right point
 
+const node_colour = "pink";
+
 
 function show_game(grid) {
   const wraper = document.getElementById("wrapper");
@@ -103,14 +105,14 @@ const SquareTileInner = React.createClass({
             { tile.links[1] ? <SquareLine angle={ 90 }/> : null }
             { tile.links[2] ? <SquareLine angle={ 180 }/> : null }
             { tile.links[3] ? <SquareLine angle={ 270 }/> : null }
-            { tile.is_source ? <rect className="core" x="-20" y="-20" width="40" height="40"/> : null }
-            { !tile.is_source && sum(tile.links) === 1 ? <circle className="node" r="12"/> : null }
+            { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" style={{ pointerEvents: "none" }}/> : null }
+            { !tile.is_source && sum(tile.links) === 1 ? <circle r="12" fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
         </g>;
     },
 });
 
 function SquareLine(props) {
-    return <line className="line" y2="-25" transform={ "rotate(" + props.angle + ")" }/>;
+    return <line className="line" y2="-25" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none" }}/>;
 };
 
 
@@ -163,14 +165,14 @@ const HexTileInner = React.createClass({
             { tile.links[3] ? <HexLine angle={ 120 }/> : null }
             { tile.links[4] ? <HexLine angle={ 180 }/> : null }
             { tile.links[5] ? <HexLine angle={ 240 }/> : null }
-            { tile.is_source ? <path className="core" d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)"/> : null }
-            { !tile.is_source && sum(tile.links) === 1 ? <circle className="node" r="30"/> : null }
+            { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" style={{ pointerEvents: "none" }}/> : null }
+            { !tile.is_source && sum(tile.links) === 1 ? <circle r="30" fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
         </g>;
     },
 });
 
 function HexLine(props) {
-    return <line className="line" y2="-65" transform={ "rotate(" + props.angle + ")" }/>;
+    return <line className="line" y2="-65" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none" }}/>;
 };
 
 function hex_center_translate(tile) {

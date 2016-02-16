@@ -34,11 +34,6 @@ body {
   stroke-linecap: round;
 }
 
-/* we listen for clicks on the tiles instead */
-.core, .line, .node {
-  pointer-events: none;
-}
-
 .line {
   stroke: black;
   stroke-width: 5px;
@@ -48,8 +43,4 @@ body {
 
 .powered .line {
   stroke: green;
-}
-
-.node {
-  fill: pink;
 }
