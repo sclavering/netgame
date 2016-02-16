@@ -12,11 +12,11 @@ const GameUI = React.createClass({
         const on_tile_click = tile => {
             this.setState(s => ({ grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile) }));
         };
-        return <g>
+        return <svg viewBox={ "0 0 " + grid.view_width + " " + grid.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
             <GameBackground grid={ grid } on_tile_click={ on_tile_click }/>
             <GameTiles grid={ grid } grid_state={ this.state.grid_state }/>
             <GameWalls grid={ grid }/>
-        </g>;
+        </svg>;
     },
 });
 

@@ -1,11 +1,7 @@
-var svg = null;
-var gridview = null;
 const create_grid_functions = {};
 
 
 window.onload = function() {
-  svg = document.getElementById('gameview');
-  gridview = document.getElementById('gridview');
   new_grid('sqr', 9, 9, true, 0.6);
 }
 
@@ -26,17 +22,11 @@ const hex_half_width = 74;
 const hex_hoffset = 111; // width of left point and rectangular body together
 const hex_overhang = 37; // width of right point
 
-const view = {
-  _grid: null,
 
-  show: function(grid) {
-    this._grid = grid;
-    ReactDOM.unmountComponentAtNode(gridview);
-    const vb = svg.viewBox.baseVal;
-    vb.width = grid.view_width;
-    vb.height = grid.view_height;
-    ReactDOM.render(React.createElement(GameUI, { grid: grid }), gridview);
-  },
+function show_game(grid) {
+  const wraper = document.getElementById("wrapper");
+  ReactDOM.unmountComponentAtNode(wrapper);
+  ReactDOM.render(React.createElement(GameUI, { grid: grid }), wrapper);
 };
 
 
@@ -45,7 +35,7 @@ function new_grid(shape, width, height, wrap, wall_probability) {
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
   if(wall_probability) for(let tile of grid.tiles) Grid.add_walls(tile, wall_probability);
-  view.show(grid);
+  show_game(grid);
 }
 
 
