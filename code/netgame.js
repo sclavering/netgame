@@ -13,23 +13,6 @@ function do_new_game(form) {
 }
 
 
-const sqr_size = 50;
-const sqr_half = 25;
-
-const hex_height = 130;
-const hex_half_height = 65;
-const hex_half_width = 74;
-const hex_hoffset = 111; // width of left point and rectangular body together
-const hex_overhang = 37; // width of right point
-
-
-function show_game(grid) {
-  const wraper = document.getElementById("wrapper");
-  ReactDOM.unmountComponentAtNode(wrapper);
-  ReactDOM.render(React.createElement(GameUI, { grid: grid }), wrapper);
-};
-
-
 function new_grid(shape, width, height, wrap, wall_probability) {
   const grid = create_grid_functions[shape](width, height, wrap);
   fill_grid(grid);
