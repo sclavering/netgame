@@ -62,21 +62,16 @@ function SquareBackground(props) {
 function SquareWalls(props) {
     const x = props.tile.x, y = props.tile.y, adj = props.tile.adj;
     return <g>
-        { !x && !adj[3] ? <SquareWallVertical x={ x } y={ y }/> : null }
-        { !adj[1] ? <SquareWallVertical x={ x + 1 } y={ y }/> : null }
-        { !y && !adj[0] ? <SquareWallHorizontal x={ x } y={ y }/> : null }
-        { !adj[2] ? <SquareWallHorizontal x={ x } y={ y + 1 }/> : null }
+        { !x && !adj[3] ? <SquareWall x1={ x } x2={ x } y1={ y } y2={ y + 1 }/> : null }
+        { !adj[1] ? <SquareWall x1={ x + 1 } x2={ x + 1 } y1={ y } y2={ y + 1 }/> : null }
+        { !y && !adj[0] ? <SquareWall x1={ x } x2={ x + 1} y1={ y } y2={ y }/> : null }
+        { !adj[2] ? <SquareWall x1={ x } x2={ x + 1} y1={ y + 1 } y2={ y + 1 }/> : null }
     </g>;
 };
 
-function SquareWallVertical(props) {
+function SquareWall(props) {
     const x = props.x * sqr_size;
-    return <line className="wall" x1={ x } x2={ x } y1={ props.y * sqr_size } y2={ (props.y + 1) * sqr_size }/>;
-};
-
-function SquareWallHorizontal(props) {
-    const y = props.y * sqr_size;
-    return <line className="wall" y1={ y } y2={ y } x1={ props.x * sqr_size } x2={ (props.x + 1) * sqr_size }/>;
+    return <line className="wall" x1={ props.x1 * sqr_size } x2={ props.x2 * sqr_size } y1={ props.y1 * sqr_size } y2={ props.y2 * sqr_size }/>;
 };
 
 const SquareTile = React.createClass({
