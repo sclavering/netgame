@@ -1,18 +1,12 @@
 var svg = null;
 var gridview = null;
-const svg_templates = {};
 const create_grid_functions = {};
 
 
 window.onload = function() {
   svg = document.getElementById('gameview');
-  for(let el of svg.getElementsByTagName('defs')[0].childNodes) {
-    if(!el.id) continue;
-    svg_templates[el.id] = el;
-    el.removeAttribute('id'); // because we clone them
-  }
   gridview = document.getElementById('gridview');
-  new_grid('hex', 9, 9, true, 0.6);
+  new_grid('sqr', 9, 9, true, 0.6);
 }
 
 
@@ -37,38 +31,11 @@ const view = {
 
   show: function(grid) {
     this._grid = grid;
-    if(this._grid_bg) ReactDOM.unmountComponentAtNode(this._grid_bg);
-    if(this._grid_walls) ReactDOM.unmountComponentAtNode(this._grid_walls);
-    while(gridview.hasChildNodes()) gridview.removeChild(gridview.lastChild);
-    this._grid_bg = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    this._grid_walls = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gridview.appendChild(this._grid_bg);
+    ReactDOM.unmountComponentAtNode(gridview);
     const vb = svg.viewBox.baseVal;
     vb.width = grid.view_width;
     vb.height = grid.view_height;
-    // Draw each group of things separately for z-ordering
-    const bg_element = React.createElement(GameBackground, { grid: grid, oncellclick: cell => this._onclick(cell) });
-    ReactDOM.render(bg_element, this._grid_bg);
-    for(let c of grid.cells) c.draw_fg();
-    gridview.appendChild(this._grid_walls);
-    const walls_element = React.createElement(GameWalls, { grid: grid });
-    ReactDOM.render(walls_element, this._grid_walls);
-    this.update_poweredness();
-    const self = this;
-    gridview.onclick = ev => {
-      if(ev.target.__cell) this._onclick(ev.target.__cell);
-    };
-  },
-
-  update_poweredness: function() {
-    const powered_id_set = which_cells_are_powered(this._grid);
-    for(let c of this._grid.cells) c.show_powered(c.id in powered_id_set);
-  },
-
-  _onclick: function(tile) {
-    Grid.rotate_clockwise(tile);
-    tile.redraw();
-    this.update_poweredness();
+    ReactDOM.render(React.createElement(GameUI, { grid: grid }), gridview);
   },
 };
 
@@ -78,7 +45,6 @@ function new_grid(shape, width, height, wrap, wall_probability) {
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
   if(wall_probability) for(let c of grid.cells) Grid.add_walls(c, wall_probability);
-  for(let c of grid.cells) c.state.rotation = random_int(c.num_sides);
   view.show(grid);
 }
 
@@ -123,24 +89,6 @@ function fill_grid(grid) {
 }
 
 
-// Rotating a cell can power or depower abitrarily many others, so it doesn't make sense to store powered-ness as a property of the cell.  Instead, we build sets of powered node as-needed.
-function which_cells_are_powered(grid) {
-  const powered = {};
-  const queue = [grid.source_cell];
-  for(var i = 0; i < queue.length; ++i) {
-    var cell = queue[i], adjs = cell.adj, len = adjs.length;
-    powered[cell.id] = true;
-    for(var dir = 0; dir !== len; ++dir) {
-      var adj = adjs[dir];
-      if(!adj || !Grid.has_current_bidirectional_link(cell, dir)) continue;
-      if(powered[adj.id]) continue;
-      queue.push(adj);
-    }
-  }
-  return powered;
-}
-
-
 function random_int(max) {
   var r;
   do { r = Math.random(); } while(r == 1.0);
@@ -155,14 +103,6 @@ function sum(list) {
 }
 
 
-function add_transformed_clone(parent, template_id, transform) {
-  const el = svg_templates[template_id].cloneNode(true);
-  el.setAttribute('transform', transform);
-  parent.appendChild(el);
-  return el;
-}
-
-
 function connect_to(cell_grid, cell, dir, x, y) {
   const other = (cell_grid[x] && cell_grid[x][y]) || null;
   if(!other) return;
@@ -172,17 +112,44 @@ function connect_to(cell_grid, cell, dir, x, y) {
 
 
 const Grid = {
-  has_current_bidirectional_link: function(tile, dir) {
-    return this.has_current_link_to(tile, dir) && this.has_current_link_to(tile.adj[dir], Grid.invert_direction(tile, dir));
+  // { orientations: (id => int mapping), active: (int => bool set) }
+  initial_state_randomising_orientations: function(grid) {
+    const orientations = {};
+    for(let tile of grid.cells) orientations[tile.id] = random_int(tile.num_sides);
+    return this._state_for_orientations(grid, orientations);
   },
 
-  has_current_link_to: function(tile, dir) {
-    return !!tile.links[this._clamp(tile, dir - tile.state.rotation)];
+  _state_for_orientations: function(grid, orientations) {
+    // Rotating a tile can power/depower abitrarily many others.  And there can be cycles in an unfinished puzzle.  So there's probably no cleverer way of doing this than just recalculating the set from scratch;
+    const powered = {};
+    const queue = [grid.source_cell];
+    const num_sides = grid.source_cell.num_sides;
+    for(let i = 0; i < queue.length; ++i) {
+      let tile = queue[i];
+      powered[tile.id] = true;
+      for(let dir = 0; dir !== num_sides; ++dir) {
+        let adj = tile.adj[dir];
+        if(!adj || powered[adj.id]) continue;
+        if(!this._has_current_link_to(orientations, tile, dir)) continue;
+        if(!this._has_current_link_to(orientations, tile.adj[dir], this.invert_direction(tile, dir))) continue;
+        queue.push(adj);
+      }
+    }
+    return {
+      orientations: orientations,
+      powered_set: powered,
+    };
   },
 
-  rotate_clockwise: function(tile) {
-    const new_rotation = this._clamp(tile, tile.state.rotation + 1);
-    tile.state = Object.assign({}, tile.state, { rotation: new_rotation });
+  rotate_tile_clockwise: function(grid, grid_state, tile) {
+    const tile_new_orientation = this._clamp(tile, grid_state.orientations[tile.id] + 1);
+    const new_orientations = Object.assign({}, grid_state.orientations);
+    new_orientations[tile.id] = tile_new_orientation;
+    return this._state_for_orientations(grid, new_orientations);
+  },
+
+  _has_current_link_to: function(orientations, tile, dir) {
+    return !!tile.links[this._clamp(tile, dir - orientations[tile.id])];
   },
 
   add_walls: function(tile, wall_probability) {
@@ -235,6 +202,7 @@ create_grid_functions.sqr = function(width, height, wrap) {
     cells: Array.concat.apply(null, cells),
     source_cell: source,
     bg_component: SquareBackground,
+    tile_component: SquareTile,
     walls_component: SquareWalls,
   };
 };
@@ -248,33 +216,9 @@ const Sqr = {
       _y: y,
       is_source: false,
       adj: [null, null, null, null], // top right bottom left
-      links: [0, 0, 0, 0], // same order.  booleans as ints.  does *not* include the current rotation
+      links: [0, 0, 0, 0], // Same order.  Booleans as ints.  Does *not* consider the current orientation.
       num_sides: 4,
-      state: {
-        rotation: 0,
-      },
     };
-  },
-
-  draw_fg: function() {
-    const cv = this._view = add_transformed_clone(gridview, 'gg', 'translate(' + (this._x * sqr_size + sqr_half) + ',' + (this._y * sqr_size + sqr_half) + ')');
-    const inner = cv.firstChild, ls = this.links;
-    if(ls[0]) add_transformed_clone(inner, 'sqr-line', '');
-    if(ls[1]) add_transformed_clone(inner, 'sqr-line', 'rotate(90)');
-    if(ls[2]) add_transformed_clone(inner, 'sqr-line', 'rotate(180)');
-    if(ls[3]) add_transformed_clone(inner, 'sqr-line', 'rotate(270)');
-    if(this.is_source) add_transformed_clone(inner, 'sqr-core', '');
-    else if(sum(ls) === 1) add_transformed_clone(inner, 'sqr-node', '');
-    gridview.appendChild(cv);
-    this.redraw(); // to handle the initial random rotation
-  },
-
-  redraw: function(x, y) {
-    this._view.firstChild.setAttribute('transform', 'rotate(' + (this.state.rotation * 90) + ')');
-  },
-
-  show_powered: function(is_powered) {
-    this._view.className.baseVal = is_powered ? 'powered' : '';
   },
 };
 
@@ -318,6 +262,7 @@ create_grid_functions.hex = function(width, height, wrap) {
     cells: Array.concat.apply(null, cell_grid),
     source_cell: source,
     bg_component: HexBackground,
+    tile_component: HexTile,
     walls_component: HexWalls,
   };
 };
@@ -335,39 +280,6 @@ const Hex = {
       adj: [null, null, null, null, null, null],
       links: [0, 0, 0, 0, 0, 0],
       num_sides: 6,
-      state: {
-        rotation: 0,
-      },
     };
-  },
-
-  _center_translate: function() {
-    if(this.__center_translate) return this.__center_translate;
-    const x = this._x * hex_hoffset + hex_half_width;
-    const y = this._y * hex_height + hex_half_height + (this._x % 2 ? 0 : hex_half_height);
-    return this.__center_translate = 'translate(' + x + ',' + y + ')';
-  },
-
-  draw_fg: function() {
-    const cv = this._view = add_transformed_clone(gridview, 'gg', this._center_translate());
-    const inner = cv.firstChild, ls = this.links;
-    if(ls[0]) add_transformed_clone(inner, 'hex-spoke', 'rotate(-60)');
-    if(ls[1]) add_transformed_clone(inner, 'hex-spoke', '');
-    if(ls[2]) add_transformed_clone(inner, 'hex-spoke', 'rotate(60)');
-    if(ls[3]) add_transformed_clone(inner, 'hex-spoke', 'rotate(120)');
-    if(ls[4]) add_transformed_clone(inner, 'hex-spoke', 'rotate(180)');
-    if(ls[5]) add_transformed_clone(inner, 'hex-spoke', 'rotate(240)');
-    if(this.is_source) add_transformed_clone(inner, 'hex-tile', 'scale(0.5)').className.baseVal = 'core';
-    else if(sum(ls) === 1) add_transformed_clone(inner, 'hex-node', '');
-    gridview.appendChild(cv);
-    this.redraw(); // to handle the initial random rotation
-  },
-
-  redraw: function(x, y) {
-    this._view.firstChild.setAttribute('transform', 'rotate(' + (this.state.rotation * 60) + ')');
-  },
-
-  show_powered: function(is_powered) {
-    this._view.className.baseVal = is_powered ? 'powered' : '';
   },
 };
