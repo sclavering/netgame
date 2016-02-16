@@ -44,13 +44,13 @@ function new_grid(shape, width, height, wrap, wall_probability) {
   const grid = create_grid_functions[shape](width, height, wrap);
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
-  if(wall_probability) for(let c of grid.cells) Grid.add_walls(c, wall_probability);
+  if(wall_probability) for(let tile of grid.tiles) Grid.add_walls(tile, wall_probability);
   view.show(grid);
 }
 
 
 function fill_grid(grid) {
-  const source = grid.source_cell;
+  const source = grid.source_tile;
   const linked = {};
   linked[source.id] = true;
 
@@ -62,11 +62,11 @@ function fill_grid(grid) {
     fringe_set[fr.id] = true;
   }
 
-  // Repeatedly pick a random cell from the fringe, link it into the network, and add its unlinked adjacents to the fringe.
+  // Repeatedly pick a random tile from the fringe, link it into the network, and add its unlinked adjacents to the fringe.
   for(var num = fringe.length; num; num = fringe.length) {
-    var cell = fringe.splice(random_int(num), 1)[0];
+    var tile = fringe.splice(random_int(num), 1)[0];
 
-    var adjs = cell.adj, len = adjs.length;
+    var adjs = tile.adj, len = adjs.length;
     var linked_adj_ixs = [];
     for(var i = 0; i != len; ++i) {
       var adj = adjs[i];
@@ -74,11 +74,11 @@ function fill_grid(grid) {
     }
 
     var random_dir = linked_adj_ixs[random_int(linked_adj_ixs.length)];
-    cell.links[random_dir] = 1;
-    cell.adj[random_dir].links[Grid.invert_direction(cell, random_dir)] = 1;
-    linked[cell.id] = true;
+    tile.links[random_dir] = 1;
+    tile.adj[random_dir].links[Grid.invert_direction(tile, random_dir)] = 1;
+    linked[tile.id] = true;
 
-    for(let adj of cell.adj) {
+    for(let adj of tile.adj) {
       if(!adj || linked[adj.id] || fringe_set[adj.id]) continue;
       fringe.push(adj);
       fringe_set[adj.id] = true;
@@ -103,11 +103,11 @@ function sum(list) {
 }
 
 
-function connect_to(cell_grid, cell, dir, x, y) {
-  const other = (cell_grid[x] && cell_grid[x][y]) || null;
+function connect_to(tile_grid, tile, dir, x, y) {
+  const other = (tile_grid[x] && tile_grid[x][y]) || null;
   if(!other) return;
-  cell.adj[dir] = other;
-  other.adj[Grid.invert_direction(cell, dir)] = cell;
+  tile.adj[dir] = other;
+  other.adj[Grid.invert_direction(tile, dir)] = tile;
 }
 
 
@@ -115,15 +115,15 @@ const Grid = {
   // { orientations: (id => int mapping), active: (int => bool set) }
   initial_state_randomising_orientations: function(grid) {
     const orientations = {};
-    for(let tile of grid.cells) orientations[tile.id] = random_int(tile.num_sides);
+    for(let tile of grid.tiles) orientations[tile.id] = random_int(tile.num_sides);
     return this._state_for_orientations(grid, orientations);
   },
 
   _state_for_orientations: function(grid, orientations) {
     // Rotating a tile can power/depower abitrarily many others.  And there can be cycles in an unfinished puzzle.  So there's probably no cleverer way of doing this than just recalculating the set from scratch;
     const powered = {};
-    const queue = [grid.source_cell];
-    const num_sides = grid.source_cell.num_sides;
+    const queue = [grid.source_tile];
+    const num_sides = grid.source_tile.num_sides;
     for(let i = 0; i < queue.length; ++i) {
       let tile = queue[i];
       powered[tile.id] = true;
@@ -176,31 +176,31 @@ const Grid = {
 
 
 create_grid_functions.sqr = function(width, height, wrap) {
-  const cells = new Array(width);
+  const tiles = new Array(width);
   var id = 0;
   for(var x = 0; x != width; ++x) {
-    cells[x] = new Array(height);
-    for(var y = 0; y != height; ++y) cells[x][y] = Sqr.make(id++, x, y);
+    tiles[x] = new Array(height);
+    for(var y = 0; y != height; ++y) tiles[x][y] = Sqr.make(id++, x, y);
   }
   for(var x = 0; x != width; ++x) {
     for(var y = 0; y != height; ++y) {
-      connect_to(cells, cells[x][y], 0, x, y - 1);
-      connect_to(cells, cells[x][y], 3, x - 1, y);
+      connect_to(tiles, tiles[x][y], 0, x, y - 1);
+      connect_to(tiles, tiles[x][y], 3, x - 1, y);
     }
   }
   if(wrap) {
-    for(var x = 0; x != width; ++x) connect_to(cells, cells[x][0], 0, x, height - 1);
-    for(var y = 0; y != height; ++y) connect_to(cells, cells[0][y], 3, width - 1, y);
+    for(var x = 0; x != width; ++x) connect_to(tiles, tiles[x][0], 0, x, height - 1);
+    for(var y = 0; y != height; ++y) connect_to(tiles, tiles[0][y], 3, width - 1, y);
   }
 
-  const source = cells[Math.floor(width / 2)][Math.floor(height / 2)];
+  const source = tiles[Math.floor(width / 2)][Math.floor(height / 2)];
   source.is_source = true;
 
   return {
     view_width: width * sqr_size,
     view_height: height * sqr_size,
-    cells: Array.concat.apply(null, cells),
-    source_cell: source,
+    tiles: Array.concat.apply(null, tiles),
+    source_tile: source,
     bg_component: SquareBackground,
     tile_component: SquareTile,
     walls_component: SquareWalls,
@@ -229,38 +229,38 @@ create_grid_functions.hex = function(width, height, wrap) {
     if(width % 2) ++width;
   }
 
-  const cell_grid = new Array(width);
+  const tile_grid = new Array(width);
   var id = 0;
   for(var x = 0; x != width; ++x) {
-    cell_grid[x] = new Array(height);
-    for(var y = 0; y != height; ++y) cell_grid[x][y] = Hex.make(id++, x, y);
+    tile_grid[x] = new Array(height);
+    for(var y = 0; y != height; ++y) tile_grid[x][y] = Hex.make(id++, x, y);
   }
   for(var x = 0; x != width; ++x) {
     for(var y = 0; y != height; ++y) {
-      var cell = cell_grid[x][y];
-      connect_to(cell_grid, cell, 1, x, y - 1);
+      var tile = tile_grid[x][y];
+      connect_to(tile_grid, tile, 1, x, y - 1);
       var slope_up_y = x % 2 ? y - 1 : y;
-      connect_to(cell_grid, cell, 0, x - 1, slope_up_y);
-      connect_to(cell_grid, cell, 2, x + 1, slope_up_y);
+      connect_to(tile_grid, tile, 0, x - 1, slope_up_y);
+      connect_to(tile_grid, tile, 2, x + 1, slope_up_y);
     }
   }
   if(wrap) {
-    for(var x = 0; x != width; ++x) connect_to(cell_grid, cell_grid[x][0], 1, x, height - 1);
+    for(var x = 0; x != width; ++x) connect_to(tile_grid, tile_grid[x][0], 1, x, height - 1);
     for(var y = 0; y != height; ++y) {
-      connect_to(cell_grid, cell_grid[0][y], 0, width - 1, y);
-      connect_to(cell_grid, cell_grid[0][y], 5, width - 1, y + 1);
+      connect_to(tile_grid, tile_grid[0][y], 0, width - 1, y);
+      connect_to(tile_grid, tile_grid[0][y], 5, width - 1, y + 1);
     }
-    connect_to(cell_grid, cell_grid[0][height - 1], 5, width - 1, 0);
+    connect_to(tile_grid, tile_grid[0][height - 1], 5, width - 1, 0);
   }
 
-  const source = cell_grid[Math.floor(width / 2)][Math.floor(height / 2)];
+  const source = tile_grid[Math.floor(width / 2)][Math.floor(height / 2)];
   source.is_source = true;
 
   return {
     view_width: width * hex_hoffset + hex_overhang,
     view_height: height * hex_height + hex_half_height,
-    cells: Array.concat.apply(null, cell_grid),
-    source_cell: source,
+    tiles: Array.concat.apply(null, tile_grid),
+    source_tile: source,
     bg_component: HexBackground,
     tile_component: HexTile,
     walls_component: HexWalls,

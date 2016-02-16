@@ -22,17 +22,17 @@ const GameUI = React.createClass({
 
 function GameBackground(props) {
     const BackgroundComponent = props.grid.bg_component;
-    return <g>{ props.grid.cells.map((tile, ix) => <BackgroundComponent key={ ix } tile={ tile } onClick={ ev => props.on_tile_click(tile) }/>) }</g>;
+    return <g>{ props.grid.tiles.map((tile, ix) => <BackgroundComponent key={ ix } tile={ tile } onClick={ ev => props.on_tile_click(tile) }/>) }</g>;
 };
 
 function GameTiles(props) {
     const TileComponent = props.grid.tile_component;
-    return <g>{ props.grid.cells.map((tile, ix) => <TileComponent key={ ix } tile={ tile } orientation={ props.grid_state.orientations[tile.id] } is_powered={ !!props.grid_state.powered_set[tile.id] }/>) }</g>;
+    return <g>{ props.grid.tiles.map((tile, ix) => <TileComponent key={ ix } tile={ tile } orientation={ props.grid_state.orientations[tile.id] } is_powered={ !!props.grid_state.powered_set[tile.id] }/>) }</g>;
 };
 
 function GameWalls(props) {
     const WallsComponent = props.grid.walls_component;
-    return <g>{ props.grid.cells.map((tile, ix) => <WallsComponent key={ ix } tile={ tile }/>) }</g>;
+    return <g>{ props.grid.tiles.map((tile, ix) => <WallsComponent key={ ix } tile={ tile }/>) }</g>;
 };
 
 
