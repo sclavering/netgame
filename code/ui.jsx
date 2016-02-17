@@ -10,7 +10,12 @@ const hex_half_width = 74;
 const hex_hoffset = 111; // width of left point and rectangular body together
 const hex_overhang = 37; // width of right point
 
+const tile_outline_colour = "white";
+const tile_colour = "#808080";
+const wall_colour = "red";
 const node_colour = "pink";
+const line_powered_colour = "green";
+const line_colour = "black";
 
 
 function show_game(grid) {
@@ -56,7 +61,7 @@ function GameWalls(props) {
 
 
 function SquareBackground(props) {
-    return <rect className="tile" width="50" height="50" x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick }/>;
+    return <rect width="50" height="50" x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: tile_colour }}/>;
 };
 
 function SquareWalls(props) {
@@ -71,7 +76,7 @@ function SquareWalls(props) {
 
 function SquareWall(props) {
     const x = props.x * sqr_size;
-    return <line className="wall" x1={ props.x1 * sqr_size } x2={ props.x2 * sqr_size } y1={ props.y1 * sqr_size } y2={ props.y2 * sqr_size }/>;
+    return <line x1={ props.x1 * sqr_size } x2={ props.x2 * sqr_size } y1={ props.y1 * sqr_size } y2={ props.y2 * sqr_size } style={{ stroke: wall_colour, strokeWidth: 5, strokeLinecap: "round" }}/>;
 };
 
 const SquareTile = React.createClass({
@@ -81,7 +86,8 @@ const SquareTile = React.createClass({
     },
     render: function() {
         const { tile, orientation, is_powered } = this.props;
-        return <g transform={ "translate(" + (tile.x * sqr_size + sqr_half) + "," + (tile.y * sqr_size + sqr_half) + ")" } className={ is_powered ? "powered" : null }>
+        // Note: .style.stroke is inherited by the descendant line segments.
+        return <g transform={ "translate(" + (tile.x * sqr_size + sqr_half) + "," + (tile.y * sqr_size + sqr_half) + ")" } style={{ stroke: is_powered ? line_powered_colour : line_colour }}>
             <g transform={ "rotate(" + (orientation * 90) + ")" }>
                 <SquareTileInner tile={ tile }/>;
             </g>
@@ -100,19 +106,19 @@ const SquareTileInner = React.createClass({
             { tile.links[1] ? <SquareLine angle={ 90 }/> : null }
             { tile.links[2] ? <SquareLine angle={ 180 }/> : null }
             { tile.links[3] ? <SquareLine angle={ 270 }/> : null }
-            { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" style={{ pointerEvents: "none" }}/> : null }
-            { !tile.is_source && sum(tile.links) === 1 ? <circle r="12" fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
+            { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" stroke={ line_colour } style={{ pointerEvents: "none" }}/> : null }
+            { !tile.is_source && sum(tile.links) === 1 ? <circle r="12" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
         </g>;
     },
 });
 
 function SquareLine(props) {
-    return <line className="line" y2="-25" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none" }}/>;
+    return <line y2="-25" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none", strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 
 function HexBackground(props) {
-    return <path className="tile" d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform={ hex_center_translate(props.tile) } onClick={ props.onClick }/>;
+    return <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: tile_colour }}/>;
 };
 
 function HexWalls(props) {
@@ -129,7 +135,7 @@ function HexWalls(props) {
 };
 
 function HexWall(props) {
-    return <line className="wall" x1="-74" x2="-37" y2="-65" transform={ hex_center_translate(props.tile) + " rotate(" + props.rotate + ")" }/>;
+    return <line x1="-74" x2="-37" y2="-65" transform={ hex_center_translate(props.tile) + " rotate(" + props.rotate + ")" } style={{ stroke: wall_colour, strokeWidth: 5, strokeLinecap: "round" }}/>;
 };
 
 const HexTile = React.createClass({
@@ -139,7 +145,8 @@ const HexTile = React.createClass({
     },
     render: function() {
         const { tile, orientation, is_powered } = this.props;
-        return <g transform={ hex_center_translate(tile) } className={ is_powered ? "powered" : null }>
+        // Note: .style.stroke is inherited by the descendant line segments.
+        return <g transform={ hex_center_translate(tile) } style={{ stroke: is_powered ? line_powered_colour : line_colour }}>
             <g transform={ "rotate(" + (orientation * 60) + ")" }>
                 <HexTileInner tile={ tile }/>;
             </g>
@@ -160,14 +167,14 @@ const HexTileInner = React.createClass({
             { tile.links[3] ? <HexLine angle={ 120 }/> : null }
             { tile.links[4] ? <HexLine angle={ 180 }/> : null }
             { tile.links[5] ? <HexLine angle={ 240 }/> : null }
-            { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" style={{ pointerEvents: "none" }}/> : null }
-            { !tile.is_source && sum(tile.links) === 1 ? <circle r="30" fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
+            { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" stroke={ line_colour } style={{ pointerEvents: "none" }}/> : null }
+            { !tile.is_source && sum(tile.links) === 1 ? <circle r="30" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
         </g>;
     },
 });
 
 function HexLine(props) {
-    return <line className="line" y2="-65" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none" }}/>;
+    return <line y2="-65" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none", strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 function hex_center_translate(tile) {

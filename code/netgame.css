@@ -20,27 +20,3 @@ body {
   bottom: 0;
   left: 0;
 }
-
-
-.tile {
-  stroke: white;
-  stroke-width: 1px;
-  fill: grey;
-}
-
-.wall {
-  stroke: red;
-  stroke-width: 5px;
-  stroke-linecap: round;
-}
-
-.line {
-  stroke: black;
-  stroke-width: 5px;
-  stroke-linecap: round;
-  fill: none;
-}
-
-.powered .line {
-  stroke: green;
-}
