@@ -11,7 +11,8 @@ const hex_hoffset = 111; // width of left point and rectangular body together
 const hex_overhang = 37; // width of right point
 
 const tile_outline_colour = "white";
-const tile_colour = "#808080";
+const tile_colour = "#cccccc";
+const locked_tile_colour = "#909090";
 const wall_colour = "red";
 const node_colour = "pink";
 const line_powered_colour = "green";
@@ -33,11 +34,17 @@ const GameUI = React.createClass({
     },
     render: function() {
         const grid = this.props.grid;
-        const on_tile_click = tile => {
-            this.setState(s => ({ grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile) }));
+        const on_tile_click = (ev, tile) => {
+            // Note: this must be outside the callback, because React clears the properties of its fake Event object.
+            const should_lock = ev.shiftKey || ev.button === 2;
+            this.setState(s => {
+                if(should_lock) return { grid_state: Grid.lock_or_unlock_tile(grid, s.grid_state, tile) };
+                if(s.grid_state.locked_set[tile.id]) return null;
+                return { grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile) };
+            });
         };
         return <svg viewBox={ "0 0 " + grid.view_width + " " + grid.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
-            <GameBackground grid={ grid } on_tile_click={ on_tile_click }/>
+            <GameBackground grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
             <GameTiles grid={ grid } grid_state={ this.state.grid_state }/>
             <GameWalls grid={ grid }/>
         </svg>;
@@ -46,7 +53,7 @@ const GameUI = React.createClass({
 
 function GameBackground(props) {
     const BackgroundComponent = props.grid.bg_component;
-    return <g>{ props.grid.tiles.map((tile, ix) => <BackgroundComponent key={ ix } tile={ tile } onClick={ ev => props.on_tile_click(tile) }/>) }</g>;
+    return <g>{ props.grid.tiles.map((tile, ix) => <BackgroundComponent key={ ix } is_locked={ tile.id in props.locked_set } tile={ tile } onClick={ ev => props.on_tile_click(ev, tile) }/>) }</g>;
 };
 
 function GameTiles(props) {
@@ -61,7 +68,7 @@ function GameWalls(props) {
 
 
 function SquareBackground(props) {
-    return <rect width="50" height="50" x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: tile_colour }}/>;
+    return <rect width="50" height="50" x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
 };
 
 function SquareWalls(props) {
@@ -118,7 +125,7 @@ function SquareLine(props) {
 
 
 function HexBackground(props) {
-    return <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: tile_colour }}/>;
+    return <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
 };
 
 function HexWalls(props) {

@@ -89,12 +89,17 @@ const Grid = {
   initial_state_randomising_orientations: function(grid) {
     const orientations = {};
     for(let tile of grid.tiles) orientations[tile.id] = random_int(tile.num_sides);
-    return this._state_for_orientations(grid, orientations);
+    return this._update_powered_set(grid, {
+      orientations: orientations,
+      powered_set: null,
+      locked_set: {},
+    });
   },
 
-  _state_for_orientations: function(grid, orientations) {
+  _update_powered_set: function(grid, mutable_new_state) {
     // Rotating a tile can power/depower abitrarily many others.  And there can be cycles in an unfinished puzzle.  So there's probably no cleverer way of doing this than just recalculating the set from scratch;
-    const powered = {};
+    const orientations = mutable_new_state.orientations;
+    const powered = mutable_new_state.powered_set = {};
     const queue = [grid.source_tile];
     const num_sides = grid.source_tile.num_sides;
     for(let i = 0; i < queue.length; ++i) {
@@ -108,17 +113,22 @@ const Grid = {
         queue.push(adj);
       }
     }
-    return {
-      orientations: orientations,
-      powered_set: powered,
-    };
+    return mutable_new_state;
+  },
+
+  lock_or_unlock_tile: function(grid, grid_state, tile) {
+    const new_locked_set = Object.assign({}, grid_state.locked_set);
+    if(grid_state.locked_set[tile.id]) delete new_locked_set[tile.id];
+    else new_locked_set[tile.id] = true;
+    return Object.assign({}, grid_state, { locked_set: new_locked_set });
   },
 
   rotate_tile_clockwise: function(grid, grid_state, tile) {
     const tile_new_orientation = this._clamp(tile, grid_state.orientations[tile.id] + 1);
     const new_orientations = Object.assign({}, grid_state.orientations);
     new_orientations[tile.id] = tile_new_orientation;
-    return this._state_for_orientations(grid, new_orientations);
+    const new_grid_state = Object.assign({}, grid_state, { orientations: new_orientations });
+    return this._update_powered_set(grid, new_grid_state);
   },
 
   _has_current_link_to: function(orientations, tile, dir) {
