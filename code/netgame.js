@@ -195,13 +195,11 @@ create_grid_functions.sqr = function(width, height, wrap) {
   source.is_source = true;
 
   return {
-    view_width: width * sqr_size,
-    view_height: height * sqr_size,
+    shape: "sqr",
+    width: width,
+    height: height,
     tiles: Array.concat.apply(null, tiles),
     source_tile: source,
-    bg_component: SquareBackground,
-    tile_component: SquareTile,
-    walls_component: SquareWalls,
   };
 };
 
@@ -241,12 +239,10 @@ create_grid_functions.hex = function(width, height, wrap) {
   source.is_source = true;
 
   return {
-    view_width: width * hex_hoffset + hex_overhang,
-    view_height: height * hex_height + hex_half_height,
+    shape: "hex",
+    width: width,
+    height: height,
     tiles: Array.concat.apply(null, tile_grid),
     source_tile: source,
-    bg_component: HexBackground,
-    tile_component: HexTile,
-    walls_component: HexWalls,
   };
 };

@@ -43,26 +43,39 @@ const GameUI = React.createClass({
                 return { grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile) };
             });
         };
-        return <svg viewBox={ "0 0 " + grid.view_width + " " + grid.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
-            <GameBackground grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
-            <GameTiles grid={ grid } grid_state={ this.state.grid_state }/>
-            <GameWalls grid={ grid }/>
+        const params = grid.shape === "sqr" ? {
+                view_width: grid.width * sqr_size,
+                view_height: grid.height * sqr_size,
+                bg_component: SquareBackground,
+                tile_component: SquareTile,
+                walls_component: SquareWalls,
+            } : {
+                view_width: grid.width * hex_hoffset + hex_overhang,
+                view_height: grid.height * hex_height + hex_half_height,
+                bg_component: HexBackground,
+                tile_component: HexTile,
+                walls_component: HexWalls,
+            };
+        return <svg viewBox={ "0 0 " + params.view_width + " " + params.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
+            <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
+            <GameTiles component={ params.tile_component } grid={ grid } grid_state={ this.state.grid_state }/>
+            <GameWalls component={ params.walls_component } grid={ grid }/>
         </svg>;
     },
 });
 
 function GameBackground(props) {
-    const BackgroundComponent = props.grid.bg_component;
+    const BackgroundComponent = props.component;
     return <g>{ props.grid.tiles.map((tile, ix) => <BackgroundComponent key={ ix } is_locked={ tile.id in props.locked_set } tile={ tile } onClick={ ev => props.on_tile_click(ev, tile) }/>) }</g>;
 };
 
 function GameTiles(props) {
-    const TileComponent = props.grid.tile_component;
+    const TileComponent = props.component;
     return <g>{ props.grid.tiles.map((tile, ix) => <TileComponent key={ ix } tile={ tile } orientation={ props.grid_state.orientations[tile.id] } is_powered={ !!props.grid_state.powered_set[tile.id] }/>) }</g>;
 };
 
 function GameWalls(props) {
-    const WallsComponent = props.grid.walls_component;
+    const WallsComponent = props.component;
     return <g>{ props.grid.tiles.map((tile, ix) => <WallsComponent key={ ix } tile={ tile }/>) }</g>;
 };
 
