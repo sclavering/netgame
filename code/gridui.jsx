@@ -1,4 +1,4 @@
-// babel -w --no-comments ui.jsx --out-file ui.js
+// babel -w --no-comments gridui.jsx --out-file gridui.js
 
 
 const sqr_size = 50;
