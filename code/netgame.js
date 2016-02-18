@@ -85,6 +85,34 @@ function connect_to(tile_grid, tile, dir, x, y) {
 
 
 const Grid = {
+  generate_grid: function(shape, num_sides, width, height, adjacents_func) {
+    const tile_grid = new Array(width);
+    let id = 0;
+    for(let x = 0; x !== width; ++x) {
+      tile_grid[x] = new Array(height);
+      for(let y = 0; y !== height; ++y) tile_grid[x][y] = this.new_tile(num_sides, id++, x, y);
+    }
+    for(let x = 0; x !== width; ++x) {
+      for(let y = 0; y !== height; ++y) {
+        let tile = tile_grid[x][y];
+        adjacents_func(tile.x, tile.y).forEach(function(tmp) {
+          if(!tmp) return;
+          const [dir, x, y] = tmp;
+          connect_to(tile_grid, tile, dir, x, y);
+        });
+      }
+    }
+    const source = tile_grid[Math.floor(width / 2)][Math.floor(height / 2)];
+    source.is_source = true;
+    return {
+      shape: shape,
+      width: width,
+      height: height,
+      tiles: Array.concat.apply(null, tile_grid),
+      source_tile: source,
+    };
+  },
+
   // { orientations: (id => int mapping), active: (int => bool set) }
   initial_state_randomising_orientations: function(grid) {
     const orientations = {};
@@ -174,33 +202,10 @@ const Grid = {
 
 // Tile directions are: 0:top 1:right 2:bottom 3:left
 create_grid_functions.sqr = function(width, height, wrap) {
-  const tiles = new Array(width);
-  var id = 0;
-  for(var x = 0; x != width; ++x) {
-    tiles[x] = new Array(height);
-    for(var y = 0; y != height; ++y) tiles[x][y] = Grid.new_tile(4, id++, x, y);
-  }
-  for(var x = 0; x != width; ++x) {
-    for(var y = 0; y != height; ++y) {
-      connect_to(tiles, tiles[x][y], 0, x, y - 1);
-      connect_to(tiles, tiles[x][y], 3, x - 1, y);
-    }
-  }
-  if(wrap) {
-    for(var x = 0; x != width; ++x) connect_to(tiles, tiles[x][0], 0, x, height - 1);
-    for(var y = 0; y != height; ++y) connect_to(tiles, tiles[0][y], 3, width - 1, y);
-  }
-
-  const source = tiles[Math.floor(width / 2)][Math.floor(height / 2)];
-  source.is_source = true;
-
-  return {
-    shape: "sqr",
-    width: width,
-    height: height,
-    tiles: Array.concat.apply(null, tiles),
-    source_tile: source,
-  };
+  return Grid.generate_grid("sqr", 4, width, height, (x, y) => [
+    x ? [3, x - 1, y] : wrap ? [3, width - 1, y] : null,
+    y ? [0, x, y - 1] : wrap ? [0, x, height - 1] : null,
+  ]);
 };
 
 
@@ -210,39 +215,13 @@ create_grid_functions.hex = function(width, height, wrap) {
     if(height % 2) ++height;
     if(width % 2) ++width;
   }
-
-  const tile_grid = new Array(width);
-  var id = 0;
-  for(var x = 0; x != width; ++x) {
-    tile_grid[x] = new Array(height);
-    for(var y = 0; y != height; ++y) tile_grid[x][y] = Grid.new_tile(6, id++, x, y);
-  }
-  for(var x = 0; x != width; ++x) {
-    for(var y = 0; y != height; ++y) {
-      var tile = tile_grid[x][y];
-      connect_to(tile_grid, tile, 1, x, y - 1);
-      var slope_up_y = x % 2 ? y - 1 : y;
-      connect_to(tile_grid, tile, 0, x - 1, slope_up_y);
-      connect_to(tile_grid, tile, 2, x + 1, slope_up_y);
-    }
-  }
-  if(wrap) {
-    for(var x = 0; x != width; ++x) connect_to(tile_grid, tile_grid[x][0], 1, x, height - 1);
-    for(var y = 0; y != height; ++y) {
-      connect_to(tile_grid, tile_grid[0][y], 0, width - 1, y);
-      connect_to(tile_grid, tile_grid[0][y], 5, width - 1, y + 1);
-    }
-    connect_to(tile_grid, tile_grid[0][height - 1], 5, width - 1, 0);
-  }
-
-  const source = tile_grid[Math.floor(width / 2)][Math.floor(height / 2)];
-  source.is_source = true;
-
-  return {
-    shape: "hex",
-    width: width,
-    height: height,
-    tiles: Array.concat.apply(null, tile_grid),
-    source_tile: source,
-  };
+  return Grid.generate_grid("hex", 6, width, height, (x, y) => {
+    let slope_up_y = x % 2 ? y - 1 : y;
+    if(slope_up_y === -1 && wrap) slope_up_y = height - 1;
+    return [
+      [0, !x && wrap ? width - 1 : x - 1, slope_up_y],
+      [1, x, !y && wrap ? height - 1 : y - 1],
+      [2, wrap && x === width - 1 ? 0 : x + 1, slope_up_y],
+    ];
+  });
 };
