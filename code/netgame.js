@@ -76,14 +76,6 @@ function sum(list) {
 }
 
 
-function connect_to(tile_grid, tile, dir, x, y) {
-  const other = (tile_grid[x] && tile_grid[x][y]) || null;
-  if(!other) return;
-  tile.adj[dir] = other;
-  other.adj[Grid.invert_direction(tile, dir)] = tile;
-}
-
-
 const Grid = {
   generate_grid: function(shape, num_sides, width, height, adjacents_func) {
     const tile_grid = new Array(width);
@@ -98,7 +90,10 @@ const Grid = {
         adjacents_func(tile.x, tile.y).forEach(function(tmp) {
           if(!tmp) return;
           const [dir, x, y] = tmp;
-          connect_to(tile_grid, tile, dir, x, y);
+          const other = (tile_grid[x] && tile_grid[x][y]) || null;
+          if(!other) return;
+          tile.adj[dir] = other;
+          other.adj[Grid.invert_direction(tile, dir)] = tile;
         });
       }
     }
