@@ -127,7 +127,7 @@ const SquareTileInner = React.createClass({
             { tile.links[2] ? <SquareLine angle={ 180 }/> : null }
             { tile.links[3] ? <SquareLine angle={ 270 }/> : null }
             { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" stroke={ line_colour } style={{ pointerEvents: "none" }}/> : null }
-            { !tile.is_source && sum(tile.links) === 1 ? <circle r="12" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
+            { !tile.is_source && tile.is_leaf_node ? <circle r="12" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
         </g>;
     },
 });
@@ -188,7 +188,7 @@ const HexTileInner = React.createClass({
             { tile.links[4] ? <HexLine angle={ 180 }/> : null }
             { tile.links[5] ? <HexLine angle={ 240 }/> : null }
             { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" stroke={ line_colour } style={{ pointerEvents: "none" }}/> : null }
-            { !tile.is_source && sum(tile.links) === 1 ? <circle r="30" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
+            { !tile.is_source && tile.is_leaf_node ? <circle r="30" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
         </g>;
     },
 });

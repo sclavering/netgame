@@ -47,8 +47,8 @@ function fill_grid(grid) {
     }
 
     var random_dir = linked_adj_ixs[random_int(linked_adj_ixs.length)];
-    tile.links[random_dir] = 1;
-    tile.adj[random_dir].links[Grid.invert_direction(tile, random_dir)] = 1;
+    tile.links[random_dir] = true;
+    tile.adj[random_dir].links[Grid.invert_direction(tile, random_dir)] = true;
     linked[tile.id] = true;
 
     for(let adj of tile.adj) {
@@ -58,6 +58,8 @@ function fill_grid(grid) {
     }
   }
 
+  for(let tile of grid.tiles) tile.is_leaf_node = tile.links.filter(x => x).length === 1;
+
   return grid;
 }
 
@@ -66,13 +68,6 @@ function random_int(max) {
   var r;
   do { r = Math.random(); } while(r == 1.0);
   return Math.floor(r * max);
-}
-
-
-function sum(list) {
-  var x = 0, len = list.length;
-  for(var i = 0; i != len; ++i) x += list[i];
-  return x;
 }
 
 
@@ -169,6 +164,8 @@ const Grid = {
       adj: Array(num_sides).fill(null),
       // Does the tile, when in its correct orientation, have links to the tiles at the corresponding indexes of .adj
       links: Array(num_sides).fill(0),
+      // Does the tile have just one link?
+      is_leaf_node: false,
     };
   },
 
