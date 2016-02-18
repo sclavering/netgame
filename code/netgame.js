@@ -1,24 +1,12 @@
 const create_grid_functions = {};
 
 
-window.onload = function() {
-  new_grid('sqr', 9, 9, true, 0.6);
-}
-
-
-function do_new_game(form) {
-  function v(sel) { return sel.options[sel.selectedIndex].value; }
-  new_grid(v(form['shape']), +v(form['width']), +v(form['height']), form['wrap'].checked, +v(form['walls']));
-  return false;
-}
-
-
-function new_grid(shape, width, height, wrap, wall_probability) {
-  const grid = create_grid_functions[shape](width, height, wrap);
+function new_grid(settings) {
+  const grid = create_grid_functions[settings.shape](settings.width, settings.height, settings.wrap);
   fill_grid(grid);
   // Walls are just hints, added after grid filling to make it easier to solve.
-  if(wall_probability) for(let tile of grid.tiles) Grid.add_walls(tile, wall_probability);
-  show_game(grid);
+  if(settings.wall_probability) for(let tile of grid.tiles) Grid.add_walls(tile, settings.wall_probability);
+  return grid;
 }
 
 

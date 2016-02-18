@@ -4,92 +4,16 @@
 
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="netgame.css">
   <title>Net</title>
   <script src="babel-5.8.24/browser-polyfill.min.js"></script>
   <script src="react-0.14.4/react-0.14.4.js"></script>
   <script src="react-0.14.4/react-dom-0.14.4.js"></script>
 
-  <script src="gridui.js"></script>
   <script src="netgame.js"></script>
+  <script src="gridui.js"></script>
+  <script src="ui.js"></script>
 </head>
 
-<body>
-  <form id="status-panel" onsubmit="do_new_game(this); return false">
-    <input type="submit" id="btn-new" value="New">
-    <label>
-      Tiles:
-      <select name="shape" onchange="do_new_game(this.form)">
-        <option value="sqr">Square</option>
-        <option value="hex">Hexagonal</option>
-      </select>
-    </label>
-    <label>
-      Width:
-      <select name="width" onchange="do_new_game(this.form)">
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-        <option>6</option>
-        <option>7</option>
-        <option>8</option>
-        <option>9</option>
-        <option>10</option>
-        <option>11</option>
-        <option>12</option>
-        <option>13</option>
-        <option>14</option>
-        <option>15</option>
-        <option>16</option>
-        <option>17</option>
-        <option>18</option>
-        <option>19</option>
-        <option>20</option>
-      </select>
-    </label>
-    <label>
-      Height:
-      <select name="height" onchange="do_new_game(this.form)">
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-        <option>6</option>
-        <option>7</option>
-        <option>8</option>
-        <option>9</option>
-        <option>10</option>
-        <option>11</option>
-        <option>12</option>
-        <option>13</option>
-        <option>14</option>
-        <option>15</option>
-        <option>16</option>
-        <option>17</option>
-        <option>18</option>
-        <option>19</option>
-        <option>20</option>
-      </select>
-    </label>
-    <label>
-      Walls (hints):
-      <select name="walls" onchange="do_new_game(this.form)">
-        <option value="0">None</option>
-        <option value="0.25">Few</option>
-        <option value="0.5">Moderate</option>
-        <option value="0.75">Many</option>
-      </select>
-    </label>
-    <label>
-      <input name="wrap" type="checkbox" onchange="do_new_game(this.form)">
-      Wrap
-    </label>
-  </form>
-
-  <div id="wrapper"></div>
-
-  <div id="youwin" style="display: none">
-    <p>You Win!</p>
-  </div>
-</body>
+<body><div></div></body>
 
 </html>

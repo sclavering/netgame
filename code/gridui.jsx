@@ -1,6 +1,3 @@
-// babel -w --no-comments gridui.jsx --out-file gridui.js
-
-
 const sqr_size = 50;
 const sqr_half = 25;
 
@@ -19,18 +16,14 @@ const line_powered_colour = "green";
 const line_colour = "black";
 
 
-function show_game(grid) {
-  const wraper = document.getElementById("wrapper");
-  ReactDOM.unmountComponentAtNode(wrapper);
-  ReactDOM.render(React.createElement(GameUI, { grid: grid }), wrapper);
-};
-
-
 const GameUI = React.createClass({
     getInitialState: function() {
         return {
             grid_state: Grid.initial_state_randomising_orientations(this.props.grid),
         };
+    },
+    componentWillReceiveProps: function(next_props) {
+        if(next_props.grid !== this.props.grid) this.setState({ grid_state: Grid.initial_state_randomising_orientations(next_props.grid) });
     },
     render: function() {
         const grid = this.props.grid;
@@ -56,11 +49,16 @@ const GameUI = React.createClass({
                 tile_component: HexTile,
                 walls_component: HexWalls,
             };
-        return <svg viewBox={ "0 0 " + params.view_width + " " + params.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
-            <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
-            <GameTiles component={ params.tile_component } grid={ grid } grid_state={ this.state.grid_state }/>
-            <GameWalls component={ params.walls_component } grid={ grid }/>
-        </svg>;
+        return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", padding: "40px 10px 10px" }}>
+            <div style={{ position: "absolute", top: 10, left: 0, width: "100%", height: 20, textAlign: "center" }}>
+                <input type="button" onClick={ this.props.on_new_game } value="New Game"/>
+            </div>
+            <svg viewBox={ "0 0 " + params.view_width + " " + params.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
+                <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
+                <GameTiles component={ params.tile_component } grid={ grid } grid_state={ this.state.grid_state }/>
+                <GameWalls component={ params.walls_component } grid={ grid }/>
+            </svg>
+        </div>;
     },
 });
 
