@@ -108,7 +108,7 @@ const SquareTile = React.createClass({
         // Note: .style.stroke is inherited by the descendant line segments.
         return <g transform={ "translate(" + (tile.x * sqr_size + sqr_half) + "," + (tile.y * sqr_size + sqr_half) + ")" } style={{ stroke: is_powered ? line_powered_colour : line_colour }}>
             <g transform={ "rotate(" + (orientation * 90) + ")" }>
-                <SquareTileInner tile={ tile }/>;
+                <SquareTileInner tile={ tile }/>
             </g>
         </g>;
     },
@@ -167,7 +167,7 @@ const HexTile = React.createClass({
         // Note: .style.stroke is inherited by the descendant line segments.
         return <g transform={ hex_center_translate(tile) } style={{ stroke: is_powered ? line_powered_colour : line_colour }}>
             <g transform={ "rotate(" + (orientation * 60) + ")" }>
-                <HexTileInner tile={ tile }/>;
+                <HexTileInner tile={ tile }/>
             </g>
         </g>;
     },
