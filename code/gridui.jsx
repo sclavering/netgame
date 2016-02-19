@@ -52,6 +52,7 @@ const GameUI = React.createClass({
         return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", padding: "40px 10px 10px" }}>
             <div style={{ position: "absolute", top: 10, left: 0, width: "100%", height: 20, textAlign: "center" }}>
                 <input type="button" onClick={ this.props.on_new_game } value="New Game"/>
+                <input type="button" onClick={ this.props.on_show_settings } value="Settings"/>
             </div>
             <svg viewBox={ "0 0 " + params.view_width + " " + params.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
                 <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
