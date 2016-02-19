@@ -1,3 +1,6 @@
+// babel --no-comments -w *.jsx --out-dir .
+
+
 const create_grid_functions = {};
 
 

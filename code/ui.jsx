@@ -1,5 +1,3 @@
-// babel --no-comments -w gridui.jsx --out-file gridui.js ui.jsx --out-file ui.js 
-
 const background_colour = "#cccccc";
 const overlay_background_colour = "rgba(204, 204, 204, 0.7)";
 
