@@ -151,10 +151,10 @@ function SquareTileInner(props) {
     const tile = props.tile;
     return <g style={{ pointerEvents: "none" }}>
         <g style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}>
-            { tile.links[0] ? <line y2={ -sqr_half } transform={ "rotate(0)" }/> : null }
-            { tile.links[1] ? <line y2={ -sqr_half } transform={ "rotate(90)" }/> : null }
-            { tile.links[2] ? <line y2={ -sqr_half } transform={ "rotate(180)" }/> : null }
-            { tile.links[3] ? <line y2={ -sqr_half } transform={ "rotate(270)" }/> : null }
+            { tile.links[0] ? <line y2={ -sqr_half }/> : null }
+            { tile.links[1] ? <line x2={ sqr_half }/> : null }
+            { tile.links[2] ? <line y2={ sqr_half }/> : null }
+            { tile.links[3] ? <line x2={ -sqr_half }/> : null }
         </g>
         { tile.is_source ? <rect x={ -sqr_source_half_size } y={ -sqr_source_half_size } width={ 2 * sqr_source_half_size } height={ 2 * sqr_source_half_size } stroke={ line_colour }/> : null }
         { !tile.is_source && tile.is_leaf_node ? <circle r={ sqr_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
