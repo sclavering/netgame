@@ -7,6 +7,7 @@ window.onload = function() {
     document.body.style.height = "100%";
     document.body.style.margin = 0;
     document.body.style.padding = 0;
+    document.body.style.overflow = "hidden";
     const wrapper = document.body.firstChild;
     ReactDOM.unmountComponentAtNode(wrapper);
     ReactDOM.render(React.createElement(MainUI), wrapper);

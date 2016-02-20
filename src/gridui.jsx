@@ -1,3 +1,5 @@
+const grid_padding = 20;
+
 const sqr_size = 130;
 const sqr_half = 65;
 const sqr_source_half_size = 32;
@@ -65,28 +67,30 @@ const GameUI = React.createClass({
             });
         };
         const params = grid.shape === "sqr" ? {
-                view_width: grid.width * sqr_size,
-                view_height: grid.height * sqr_size,
+                view_width: grid.width * sqr_size + 2 * grid_padding,
+                view_height: grid.height * sqr_size + 2 * grid_padding,
                 bg_component: SquareBackground,
                 tile_component: SquareTile,
                 walls_component: SquareWalls,
             } : {
-                view_width: grid.width * hex_hoffset + hex_overhang,
-                view_height: grid.height * hex_height + hex_half_height,
+                view_width: grid.width * hex_hoffset + hex_overhang + 2 * grid_padding,
+                view_height: grid.height * hex_height + hex_half_height + 2 * grid_padding,
                 bg_component: HexBackground,
                 tile_component: HexTile,
                 walls_component: HexWalls,
             };
-        return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", padding: "40px 10px 10px", MozUserSelect: "none" }}>
+        return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", paddingTop: 30, MozUserSelect: "none" }}>
             <div style={{ position: "absolute", top: 10, left: 0, width: "100%", height: 20, textAlign: "center" }}>
                 <span style={{ display: "inline-block", minWidth: "15ex", verticalAlign: "middle" }}>Moves: { this.state.move_count }/{ this.state.grid_state.num_tiles_originally_requiring_rotation }</span>
                 <input type="button" onClick={ this.props.on_new_game } value="New Game" style={{ verticalAlign: "middle" }}/>
                 <input type="button" onClick={ this.props.on_show_settings } value="Settings" style={{ verticalAlign: "middle" }}/>
             </div>
             <svg viewBox={ "0 0 " + params.view_width + " " + params.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
-                <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
-                <GameTiles component={ params.tile_component } grid={ grid } grid_state={ this.state.grid_state }/>
-                <PureWrapper component={ GameWalls } walls_component={ params.walls_component } grid={ grid }/>
+                <g transform={ "translate(" + grid_padding + "," + grid_padding + ")" }>
+                    <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
+                    <GameTiles component={ params.tile_component } grid={ grid } grid_state={ this.state.grid_state }/>
+                    <PureWrapper component={ GameWalls } walls_component={ params.walls_component } grid={ grid }/>
+                </g>
             </svg>
         </div>;
     },
