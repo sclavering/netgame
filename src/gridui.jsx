@@ -148,19 +148,17 @@ function SquareTile(props) {
 };
 
 function SquareTileInner(props) {
-        const tile = props.tile;
-        return <g style={{ pointerEvents: "none" }}>
-            { tile.links[0] ? <SquareLine angle={ 0 }/> : null }
-            { tile.links[1] ? <SquareLine angle={ 90 }/> : null }
-            { tile.links[2] ? <SquareLine angle={ 180 }/> : null }
-            { tile.links[3] ? <SquareLine angle={ 270 }/> : null }
-            { tile.is_source ? <rect x={ -sqr_source_half_size } y={ -sqr_source_half_size } width={ 2 * sqr_source_half_size } height={ 2 * sqr_source_half_size } stroke={ line_colour }/> : null }
-            { !tile.is_source && tile.is_leaf_node ? <circle r={ sqr_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
-        </g>;
-};
-
-function SquareLine(props) {
-    return <line y2={ -sqr_half } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}/>;
+    const tile = props.tile;
+    return <g style={{ pointerEvents: "none" }}>
+        <g style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}>
+            { tile.links[0] ? <line y2={ -sqr_half } transform={ "rotate(0)" }/> : null }
+            { tile.links[1] ? <line y2={ -sqr_half } transform={ "rotate(90)" }/> : null }
+            { tile.links[2] ? <line y2={ -sqr_half } transform={ "rotate(180)" }/> : null }
+            { tile.links[3] ? <line y2={ -sqr_half } transform={ "rotate(270)" }/> : null }
+        </g>
+        { tile.is_source ? <rect x={ -sqr_source_half_size } y={ -sqr_source_half_size } width={ 2 * sqr_source_half_size } height={ 2 * sqr_source_half_size } stroke={ line_colour }/> : null }
+        { !tile.is_source && tile.is_leaf_node ? <circle r={ sqr_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
+    </g>;
 };
 
 
@@ -196,21 +194,19 @@ function HexTile(props) {
 };
 
 function HexTileInner(props) {
-        const tile = props.tile;
-        return <g style={{ pointerEvents: "none" }}>
-            { tile.links[0] ? <HexLine angle={ -60 }/> : null }
-            { tile.links[1] ? <HexLine angle={ 0 }/> : null }
-            { tile.links[2] ? <HexLine angle={ 60 }/> : null }
-            { tile.links[3] ? <HexLine angle={ 120 }/> : null }
-            { tile.links[4] ? <HexLine angle={ 180 }/> : null }
-            { tile.links[5] ? <HexLine angle={ 240 }/> : null }
-            { tile.is_source ? <path d={ hex_path } transform="scale(0.5)" stroke={ line_colour }/> : null }
-            { !tile.is_source && tile.is_leaf_node ? <circle r={ hex_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
-        </g>;
-};
-
-function HexLine(props) {
-    return <line y2={ -hex_half_height } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}/>;
+    const tile = props.tile;
+    return <g style={{ pointerEvents: "none" }}>
+        <g style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}>
+            { tile.links[0] ? <line y2={ -hex_half_height } transform={ "rotate(-60)" }/> : null }
+            { tile.links[1] ? <line y2={ -hex_half_height } transform={ "rotate(0)" }/> : null }
+            { tile.links[2] ? <line y2={ -hex_half_height } transform={ "rotate(60)" }/> : null }
+            { tile.links[3] ? <line y2={ -hex_half_height } transform={ "rotate(120)" }/> : null }
+            { tile.links[4] ? <line y2={ -hex_half_height } transform={ "rotate(180)" }/> : null }
+            { tile.links[5] ? <line y2={ -hex_half_height } transform={ "rotate(240)" }/> : null }
+        </g>
+        { tile.is_source ? <path d={ hex_path } transform="scale(0.5)" stroke={ line_colour }/> : null }
+        { !tile.is_source && tile.is_leaf_node ? <circle r={ hex_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
+    </g>;
 };
 
 function hex_center_translate(tile) {
