@@ -1,11 +1,15 @@
 const sqr_size = 50;
 const sqr_half = 25;
+const sqr_source_half_size = 20;
+const sqr_node_radius = 12;
 
 const hex_height = 130;
 const hex_half_height = 65;
 const hex_half_width = 74;
 const hex_hoffset = 111; // width of left point and rectangular body together
 const hex_overhang = 37; // width of right point
+const hex_node_radius = 30;
+const hex_path = `M -${hex_half_width},0 L -${hex_overhang},-${hex_half_height} ${hex_overhang},-${hex_half_height} ${hex_half_width},0 ${hex_overhang},${hex_half_height} -${hex_overhang},${hex_half_height} z`;
 
 const tile_outline_colour = "white";
 const tile_colour = "#cccccc";
@@ -80,7 +84,7 @@ function GameWalls(props) {
 
 
 function SquareBackground(props) {
-    return <rect width="50" height="50" x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
+    return <rect width={ sqr_size } height={ sqr_size } x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
 };
 
 function SquareWalls(props) {
@@ -125,19 +129,19 @@ const SquareTileInner = React.createClass({
             { tile.links[1] ? <SquareLine angle={ 90 }/> : null }
             { tile.links[2] ? <SquareLine angle={ 180 }/> : null }
             { tile.links[3] ? <SquareLine angle={ 270 }/> : null }
-            { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" stroke={ line_colour }/> : null }
-            { !tile.is_source && tile.is_leaf_node ? <circle r="12" stoke={ line_colour } fill={ node_colour }/> : null }
+            { tile.is_source ? <rect x={ -sqr_source_half_size } y={ -sqr_source_half_size } width={ 2 * sqr_source_half_size } height={ 2 * sqr_source_half_size } stroke={ line_colour }/> : null }
+            { !tile.is_source && tile.is_leaf_node ? <circle r={ sqr_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
         </g>;
     },
 });
 
 function SquareLine(props) {
-    return <line y2="-25" transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
+    return <line y2={ -sqr_half } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 
 function HexBackground(props) {
-    return <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
+    return <path d={ hex_path } transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
 };
 
 function HexWalls(props) {
@@ -154,7 +158,7 @@ function HexWalls(props) {
 };
 
 function HexWall(props) {
-    return <line x1="-74" x2="-37" y2="-65" transform={ hex_center_translate(props.tile) + " rotate(" + props.rotate + ")" } style={{ stroke: wall_colour, strokeWidth: 5, strokeLinecap: "round" }}/>;
+    return <line x1={ -hex_half_width } x2={ -hex_overhang } y2={ -hex_half_height } transform={ hex_center_translate(props.tile) + " rotate(" + props.rotate + ")" } style={{ stroke: wall_colour, strokeWidth: 5, strokeLinecap: "round" }}/>;
 };
 
 const HexTile = React.createClass({
@@ -186,14 +190,14 @@ const HexTileInner = React.createClass({
             { tile.links[3] ? <HexLine angle={ 120 }/> : null }
             { tile.links[4] ? <HexLine angle={ 180 }/> : null }
             { tile.links[5] ? <HexLine angle={ 240 }/> : null }
-            { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" stroke={ line_colour }/> : null }
-            { !tile.is_source && tile.is_leaf_node ? <circle r="30" stoke={ line_colour } fill={ node_colour }/> : null }
+            { tile.is_source ? <path d={ hex_path } transform="scale(0.5)" stroke={ line_colour }/> : null }
+            { !tile.is_source && tile.is_leaf_node ? <circle r={ hex_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
         </g>;
     },
 });
 
 function HexLine(props) {
-    return <line y2="-65" transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
+    return <line y2={ -hex_half_height } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 function hex_center_translate(tile) {
