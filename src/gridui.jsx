@@ -79,7 +79,7 @@ const GameUI = React.createClass({
             };
         return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", padding: "40px 10px 10px", MozUserSelect: "none" }}>
             <div style={{ position: "absolute", top: 10, left: 0, width: "100%", height: 20, textAlign: "center" }}>
-                <span style={{ display: "inline-block", minWidth: "15ex", verticalAlign: "middle" }}>Moves: { this.state.move_count }</span>
+                <span style={{ display: "inline-block", minWidth: "15ex", verticalAlign: "middle" }}>Moves: { this.state.move_count }/{ this.state.grid_state.num_tiles_originally_requiring_rotation }</span>
                 <input type="button" onClick={ this.props.on_new_game } value="New Game" style={{ verticalAlign: "middle" }}/>
                 <input type="button" onClick={ this.props.on_show_settings } value="Settings" style={{ verticalAlign: "middle" }}/>
             </div>

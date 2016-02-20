@@ -98,11 +98,16 @@ const Grid = {
   // { orientations: (id => int mapping), active: (int => bool set) }
   initial_state_randomising_orientations: function(grid) {
     const orientations = {};
-    for(let tile of grid.tiles) orientations[tile.id] = random_int(tile.num_sides);
+    let num_tiles_originally_requiring_rotation = 0;
+    for(let tile of grid.tiles) {
+      let orient = orientations[tile.id] = random_int(tile.num_sides);
+      if(orient % tile.num_distinct_rotations) ++num_tiles_originally_requiring_rotation;
+    }
     return this._update_powered_set(grid, {
       orientations: orientations,
       powered_set: null,
       locked_set: {},
+      num_tiles_originally_requiring_rotation: num_tiles_originally_requiring_rotation,
     });
   },
 
