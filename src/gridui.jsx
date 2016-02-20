@@ -120,19 +120,19 @@ const SquareTileInner = React.createClass({
     },
     render() {
         const tile = this.props.tile;
-        return <g>
+        return <g style={{ pointerEvents: "none" }}>
             { tile.links[0] ? <SquareLine angle={ 0 }/> : null }
             { tile.links[1] ? <SquareLine angle={ 90 }/> : null }
             { tile.links[2] ? <SquareLine angle={ 180 }/> : null }
             { tile.links[3] ? <SquareLine angle={ 270 }/> : null }
-            { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" stroke={ line_colour } style={{ pointerEvents: "none" }}/> : null }
-            { !tile.is_source && tile.is_leaf_node ? <circle r="12" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
+            { tile.is_source ? <rect x="-20" y="-20" width="40" height="40" stroke={ line_colour }/> : null }
+            { !tile.is_source && tile.is_leaf_node ? <circle r="12" stoke={ line_colour } fill={ node_colour }/> : null }
         </g>;
     },
 });
 
 function SquareLine(props) {
-    return <line y2="-25" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none", strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
+    return <line y2="-25" transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 
@@ -179,21 +179,21 @@ const HexTileInner = React.createClass({
     },
     render() {
         const tile = this.props.tile;
-        return <g>
+        return <g style={{ pointerEvents: "none" }}>
             { tile.links[0] ? <HexLine angle={ -60 }/> : null }
             { tile.links[1] ? <HexLine angle={ 0 }/> : null }
             { tile.links[2] ? <HexLine angle={ 60 }/> : null }
             { tile.links[3] ? <HexLine angle={ 120 }/> : null }
             { tile.links[4] ? <HexLine angle={ 180 }/> : null }
             { tile.links[5] ? <HexLine angle={ 240 }/> : null }
-            { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" stroke={ line_colour } style={{ pointerEvents: "none" }}/> : null }
-            { !tile.is_source && tile.is_leaf_node ? <circle r="30" stoke={ line_colour } fill={ node_colour } style={{ pointerEvents: "none" }}/> : null }
+            { tile.is_source ? <path d="M -74,0 L -37,-65 37,-65 74,0 37,65 -37,65 z" transform="scale(0.5)" stroke={ line_colour }/> : null }
+            { !tile.is_source && tile.is_leaf_node ? <circle r="30" stoke={ line_colour } fill={ node_colour }/> : null }
         </g>;
     },
 });
 
 function HexLine(props) {
-    return <line y2="-65" transform={ "rotate(" + props.angle + ")" } style={{ pointerEvents: "none", strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
+    return <line y2="-65" transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 function hex_center_translate(tile) {
