@@ -1,7 +1,7 @@
-const sqr_size = 50;
-const sqr_half = 25;
-const sqr_source_half_size = 20;
-const sqr_node_radius = 12;
+const sqr_size = 130;
+const sqr_half = 65;
+const sqr_source_half_size = 32;
+const sqr_node_radius = 30;
 
 const hex_height = 130;
 const hex_half_height = 65;
@@ -18,6 +18,10 @@ const wall_colour = "red";
 const node_colour = "pink";
 const line_powered_colour = "green";
 const line_colour = "black";
+
+const wall_width = 7;
+const line_width = 7;
+const tile_outline_width = 3;
 
 
 const GameUI = React.createClass({
@@ -115,7 +119,7 @@ const PureWrapper = React.createClass({
 
 
 function SquareBackground(props) {
-    return <rect width={ sqr_size } height={ sqr_size } x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
+    return <rect width={ sqr_size } height={ sqr_size } x={ props.tile.x * sqr_size } y={ props.tile.y * sqr_size } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: tile_outline_width, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
 };
 
 function SquareWalls(props) {
@@ -130,7 +134,7 @@ function SquareWalls(props) {
 
 function SquareWall(props) {
     const x = props.x * sqr_size;
-    return <line x1={ props.x1 * sqr_size } x2={ props.x2 * sqr_size } y1={ props.y1 * sqr_size } y2={ props.y2 * sqr_size } style={{ stroke: wall_colour, strokeWidth: 5, strokeLinecap: "round" }}/>;
+    return <line x1={ props.x1 * sqr_size } x2={ props.x2 * sqr_size } y1={ props.y1 * sqr_size } y2={ props.y2 * sqr_size } style={{ stroke: wall_colour, strokeWidth: wall_width, strokeLinecap: "round" }}/>;
 };
 
 function SquareTile(props) {
@@ -156,12 +160,12 @@ function SquareTileInner(props) {
 };
 
 function SquareLine(props) {
-    return <line y2={ -sqr_half } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
+    return <line y2={ -sqr_half } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 
 function HexBackground(props) {
-    return <path d={ hex_path } transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: 1, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
+    return <path d={ hex_path } transform={ hex_center_translate(props.tile) } onClick={ props.onClick } style={{ stroke: tile_outline_colour, strokeWidth: tile_outline_width, fill: props.is_locked ? locked_tile_colour : tile_colour }}/>;
 };
 
 function HexWalls(props) {
@@ -178,7 +182,7 @@ function HexWalls(props) {
 };
 
 function HexWall(props) {
-    return <line x1={ -hex_half_width } x2={ -hex_overhang } y2={ -hex_half_height } transform={ hex_center_translate(props.tile) + " rotate(" + props.rotate + ")" } style={{ stroke: wall_colour, strokeWidth: 5, strokeLinecap: "round" }}/>;
+    return <line x1={ -hex_half_width } x2={ -hex_overhang } y2={ -hex_half_height } transform={ hex_center_translate(props.tile) + " rotate(" + props.rotate + ")" } style={{ stroke: wall_colour, strokeWidth: wall_width, strokeLinecap: "round" }}/>;
 };
 
 function HexTile(props) {
@@ -206,7 +210,7 @@ function HexTileInner(props) {
 };
 
 function HexLine(props) {
-    return <line y2={ -hex_half_height } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: 5, strokeLinecap: "round", fill: "none" }}/>;
+    return <line y2={ -hex_half_height } transform={ "rotate(" + props.angle + ")" } style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}/>;
 };
 
 function hex_center_translate(tile) {
