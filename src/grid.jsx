@@ -7,6 +7,7 @@ const create_grid_functions = {};
 function new_grid(settings) {
   const grid = create_grid_functions[settings.shape](settings.width, settings.height, settings.wrap);
   fill_grid(grid);
+  for(let tile of grid.tiles) tile.num_distinct_rotations = Grid.calculate_num_distinct_rotations(tile);
   // Walls are just hints, added after grid filling to make it easier to solve.
   if(settings.wall_probability) for(let tile of grid.tiles) Grid.add_walls(tile, settings.wall_probability);
   return grid;
@@ -151,6 +152,7 @@ const Grid = {
       y: y,
       is_source: false,
       num_sides: num_sides,
+      num_distinct_rotations: 0, // Either num_sides, or lower if the tile is rotationally symmetrical.
       // Other tile objects, indexed by shape-specific directions.
       adj: Array(num_sides).fill(null),
       // Does the tile, when in its correct orientation, have links to the tiles at the corresponding indexes of .adj
@@ -158,6 +160,14 @@ const Grid = {
       // Does the tile have just one link?
       is_leaf_node: false,
     };
+  },
+
+  calculate_num_distinct_rotations: function(tile) {
+    const needle = tile.links.map(x => x ? 1 : 0).join("");
+    const haystack = needle.slice(1) + needle.slice(0, -1);
+    const ix = haystack.indexOf(needle);
+    if(ix === -1) return tile.num_sides;
+    return ix + 1;
   },
 
   add_walls: function(tile, wall_probability) {

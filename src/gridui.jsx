@@ -31,6 +31,7 @@ const GameUI = React.createClass({
         return {
             grid_state: Grid.initial_state_randomising_orientations(grid),
             prev_tile: null,
+            prev_tile_rotation_count: 0,
             move_count: 0,
         };
     },
@@ -39,14 +40,24 @@ const GameUI = React.createClass({
         const on_tile_click = (ev, tile) => {
             // Note: this must be outside the callback, because React clears the properties of its fake Event object.
             const should_lock = ev.shiftKey || ev.button === 2;
+            if(!should_lock && tile.num_distinct_rotations === 1) return;
             this.setState(s => {
                 if(should_lock) return { grid_state: Grid.lock_or_unlock_tile(grid, s.grid_state, tile) };
                 if(s.grid_state.locked_set[tile.id]) return null;
-                return {
+                const rv = {
                     grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile),
                     prev_tile: tile,
-                    move_count: tile === s.prev_tile ? s.move_count : s.move_count + 1,
+                    prev_tile_rotation_count: 1,
+                    move_count: s.move_count + 1,
                 };
+                if(tile === s.prev_tile) {
+                    rv.prev_tile_rotation_count = (s.prev_tile_rotation_count + 1) % tile.num_distinct_rotations;
+                    // If we're continuing rotation of a tile, don't increase the count.
+                    if(rv.prev_tile_rotation_count > 1) --rv.move_count;
+                    // If a tile has is back to its starting position (or a visually-equivalent position, for rotationally-symmetrical tiles), undo the original move-count increase for turning it.  Because sometimes you click a tile by accident (e.g. when meaning to click an adjacent one), and it's annoying to suffer a penalty for that.
+                    else if(!rv.prev_tile_rotation_count) rv.move_count -= 2;
+                }
+                return rv;
             });
         };
         const params = grid.shape === "sqr" ? {
