@@ -148,13 +148,14 @@ function SquareTile(props) {
 };
 
 function SquareTileInner(props) {
-    const tile = props.tile;
+    const tile = props.tile, links = tile.links;
+    // Note: we could draw each of the four spokes separately, but that would give graphical glitches at the overlapping point at the center of the tile, because of alpha blending.
     return <g style={{ pointerEvents: "none" }}>
         <g style={{ strokeWidth: line_width, strokeLinecap: "round", fill: "none" }}>
-            { tile.links[0] ? <line y2={ -sqr_half }/> : null }
-            { tile.links[1] ? <line x2={ sqr_half }/> : null }
-            { tile.links[2] ? <line y2={ sqr_half }/> : null }
-            { tile.links[3] ? <line x2={ -sqr_half }/> : null }
+            { links[0] ? <line y1={ -sqr_half } y2={ links[2] ? sqr_half : 0 }/> : null }
+            { links[2] && !links[0] ? <line y2={ sqr_half }/> : null }
+            { links[1] ? <line x1={ links[3] ? -sqr_half : 0 } x2={ sqr_half }/> : null }
+            { links[3] && !links[1] ? <line x2={ -sqr_half }/> : null }
         </g>
         { tile.is_source ? <rect x={ -sqr_source_half_size } y={ -sqr_source_half_size } width={ 2 * sqr_source_half_size } height={ 2 * sqr_source_half_size } stroke={ line_colour }/> : null }
         { !tile.is_source && tile.is_leaf_node ? <circle r={ sqr_node_radius } stoke={ line_colour } fill={ node_colour }/> : null }
