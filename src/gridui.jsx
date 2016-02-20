@@ -22,12 +22,17 @@ const line_colour = "black";
 
 const GameUI = React.createClass({
     getInitialState: function() {
-        return {
-            grid_state: Grid.initial_state_randomising_orientations(this.props.grid),
-        };
+        return this._initial_state(this.props.grid);
     },
     componentWillReceiveProps: function(next_props) {
-        if(next_props.grid !== this.props.grid) this.setState({ grid_state: Grid.initial_state_randomising_orientations(next_props.grid) });
+        if(next_props.grid !== this.props.grid) this.setState(this._initial_state(next_props.grid));
+    },
+    _initial_state(grid) {
+        return {
+            grid_state: Grid.initial_state_randomising_orientations(grid),
+            prev_tile: null,
+            move_count: 0,
+        };
     },
     render: function() {
         const grid = this.props.grid;
@@ -37,7 +42,11 @@ const GameUI = React.createClass({
             this.setState(s => {
                 if(should_lock) return { grid_state: Grid.lock_or_unlock_tile(grid, s.grid_state, tile) };
                 if(s.grid_state.locked_set[tile.id]) return null;
-                return { grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile) };
+                return {
+                    grid_state: Grid.rotate_tile_clockwise(grid, s.grid_state, tile),
+                    prev_tile: tile,
+                    move_count: tile === s.prev_tile ? s.move_count : s.move_count + 1,
+                };
             });
         };
         const params = grid.shape === "sqr" ? {
@@ -53,10 +62,11 @@ const GameUI = React.createClass({
                 tile_component: HexTile,
                 walls_component: HexWalls,
             };
-        return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", padding: "40px 10px 10px" }}>
+        return <div style={{ position: "absolute", width: "100%", height: "100%", background: tile_colour, boxSizing: "padding-box", padding: "40px 10px 10px", MozUserSelect: "none" }}>
             <div style={{ position: "absolute", top: 10, left: 0, width: "100%", height: 20, textAlign: "center" }}>
-                <input type="button" onClick={ this.props.on_new_game } value="New Game"/>
-                <input type="button" onClick={ this.props.on_show_settings } value="Settings"/>
+                <span style={{ display: "inline-block", minWidth: "15ex", verticalAlign: "middle" }}>Moves: { this.state.move_count }</span>
+                <input type="button" onClick={ this.props.on_new_game } value="New Game" style={{ verticalAlign: "middle" }}/>
+                <input type="button" onClick={ this.props.on_show_settings } value="Settings" style={{ verticalAlign: "middle" }}/>
             </div>
             <svg viewBox={ "0 0 " + params.view_width + " " + params.view_height } preserveAspectRatio="xMidYMid meet" width="100%" height="100%">
                 <GameBackground component={ params.bg_component } grid={ grid } on_tile_click={ on_tile_click } locked_set={ this.state.grid_state.locked_set }/>
